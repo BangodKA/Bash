@@ -143,13 +143,13 @@ int GetNewCommandWord(char **command, int *length, int word_size, int *arg_lengt
 
 char** GetNewCommand(int *size, int *length, int **arg_length, int *ampersand) {
     char **command = (char **)malloc(*size * sizeof(char *));
-    *ampersand = (int *)malloc(*size * sizeof(int));
+    ampersand = (int *)malloc(*size * sizeof(int));
     *arg_length = (int *)malloc(*size * sizeof(int));
     *length = 0;
     int word_size = 10;
     int temp;
     while(1) { // Последний прочитанный мог быть пробелом, тогда получаем еще слова
-        temp = GetNewCommandWord(command, length, word_size, *arg_length, *ampersand);
+        temp = GetNewCommandWord(command, length, word_size, *arg_length, ampersand);
         if (temp == '\n') {
             break;
         }
