@@ -21,10 +21,15 @@
 typedef struct CommInf{
     char **command;
     int size;
-    int length;
+    int comm_length;
     int *arg_length;
-    int *ampersand;
+    int ampersand;
 }CInf;
+
+typedef struct Commands{
+    CInf *commands;
+    int length;
+}Comms;
 
 
 // ПЕРВЫЙ ЭТАП
@@ -96,11 +101,26 @@ void GiveMoreTwoDimSpace (char ***small, int *data_volume) { // Выделяет
     *small = big;
 }
 
-int GetNewCommandWord(char **command, int *length, int word_size, int *arg_length, int *ampersand) { // Добавляет в массив команды новое слово, возвращая последний символ
+void Copy3Dim(CInf *small, CInf *big, int data_volume) { // Копирует двумерный массив из одной области память в другую двумерный массив
+    for(int i = 0; i < data_volume; i++) {
+        big[i] = small[i];
+    }
+}
+
+void GiveMore3DimSpace (CInf **small, int *data_volume) { // Выделяет в два раза больше места под массив строк
+    int temp = *data_volume;
+    *data_volume *= 2;
+    CInf *big = (CInf *)malloc(*data_volume * sizeof(CInf));
+    Copy3Dim(*small, big, temp);
+    free(*small);
+    *small = big;
+}
+
+int GetNewCommandWord(char **command, int *length, int *arg_length, int *ampersand) { // Добавляет в массив команды новое слово, возвращая последний символ
     int c;
+    int word_size = 10;
     command[*length] = (char*)malloc(word_size * sizeof(char));
     arg_length[*length] = 0;
-    ampersand[*length] = 0;
     int j = 0;
     do {
         if (j == word_size) {
@@ -112,9 +132,9 @@ int GetNewCommandWord(char **command, int *length, int word_size, int *arg_lengt
         if (c == '&') {
             if ((*length == 0) && (j == 0)) {
                 while(getchar() != '\n'); // cчитываем лишний ввод
-                return c;
+                return 1;
             }
-
+            *ampersand = 1;
             break;
         }
 
@@ -128,60 +148,79 @@ int GetNewCommandWord(char **command, int *length, int word_size, int *arg_lengt
     } while(1);
 
     if (j != 0) { // Окончание строки, появилось новое слово длины j
-        ampersand[*length] = 1;
         command[*length][j] = '\0';
         arg_length[*length] = j;
         (*length)++;
     }
 
-    else {
-        ampersand[*length - 1] = 1;
-    }
-
     return c;
 }
 
-char** GetNewCommand(int *size, int *length, int **arg_length, int *ampersand) {
-    char **command = (char **)malloc(*size * sizeof(char *));
-    ampersand = (int *)malloc(*size * sizeof(int));
-    *arg_length = (int *)malloc(*size * sizeof(int));
-    *length = 0;
-    int word_size = 10;
-    int temp;
+char **GetNewCommand(CInf *commands, int len, int *exit_symbol) {
+    int comm_size = 10;
+    commands[len].command = (char **)malloc(comm_size * sizeof(char *));
+    commands[len].arg_length = (int *)malloc(comm_size * sizeof(int));
+    commands[len].ampersand = 0;
+    int comm_length = 0;
     while(1) { // Последний прочитанный мог быть пробелом, тогда получаем еще слова
-        temp = GetNewCommandWord(command, length, word_size, *arg_length, ampersand);
-        if (temp == '\n') {
+        *exit_symbol = GetNewCommandWord(commands[len].command, &comm_length, commands[len].arg_length, &commands[len].ampersand);
+        if ((*exit_symbol == '\n') || (*exit_symbol == '&') || (*exit_symbol == 1)) {
             break;
         }
-
-        if (temp == '&') {
-            return NULL;
-        }
         
-        if (*length == *size) {
-            GiveMoreTwoDimSpace(&command, size);
+        if (comm_length == comm_size) {
+            GiveMoreTwoDimSpace(&commands[len].command, &comm_size);
         }
     }
 
     
-    if (*length == *size) {
-        GiveMoreTwoDimSpace(&command, size);
+    if (comm_length == comm_size) {
+        GiveMoreTwoDimSpace(&commands[len].command, &comm_size);
     }
 
-    command[*length] = (char*)malloc(word_size * sizeof( char)); // Маркер завершения команды
-    command[*length] = NULL;                                    // для execvp
+    commands[len].command[comm_length] = (char*)malloc(10 * sizeof(char)); // Маркер завершения команды
+    commands[len].command[comm_length] = NULL;                                    // для execvp
 
-    return command;
+    commands[len].comm_length = comm_length;
+
+    return commands[len].command;
+}
+
+Comms GetNewString() {
+    Comms object;
+    int size = 10;
+    object.commands = (CInf *)malloc(size * sizeof(CInf));
+    object.length = 0;
+    int exit_symbol = '\0';
+    while(exit_symbol != '\n') {
+
+        if (object.length == size) {
+            GiveMore3DimSpace(&object.commands, &size);
+        }
+
+        GetNewCommand(object.commands, object.length, &exit_symbol);
+
+        if (exit_symbol == 1) {
+            object.length = -1;
+            break;
+        }
+        
+        object.length++;
+    }
+
+    return object;
 
 }
 
 
 // ВТОРОЙ ЭТАП
 
-int DetectExit(char **command, int length) { // Обнаруживает exit
-    if (length > 0) {
-        if (strcmp(command[0], "exit") == 0) {
-            return 1;
+int DetectExit(CInf *commands, int length) { // Обнаруживает exit
+    for (int i = 0; i < length; i++) {
+        if (commands[i].comm_length > 0) {
+            if ((strcmp(commands[i].command[0], "exit") == 0) && (commands[i].ampersand == 0)) {
+                return 1;
+            }
         }
     }
     return 0;
@@ -248,11 +287,14 @@ void ProcessCommand(char **command) { // Выполнение команды API
     }
 }
 
-void FreeHeap(char **command, int length) { // Освобождает от команды
-    for(int i = 0; i <= length; i++) {
-        free(command[i]);
+void FreeHeap(CInf *commands, int length) { // Освобождает от команды
+    for (int k = 0; k < length; k++) {
+        for(int i = 0; i <= commands[k].comm_length; i++) {
+            free(commands[k].command[i]);
+        }
+        free(commands[k].command);
     }
-    free(command);
+    free(commands);
 }
 
 int main ()
@@ -263,10 +305,9 @@ int main ()
     int home_dir_length = 0;
     char userName[LOGIN_NAME_MAX + 1]; // Указатель на область, где будет храниться имя пользователя
     char hostName[HOST_NAME_MAX + 1]; // Массив, где будет храниться имя хоста
-    CInf  object;
-    object.size = 200;
-    object.length = 0;
     //object.command[0] = NULL;
+
+    Comms object;
 
     CreateCommandPrompt(&dirName, userName, hostName, &dir_length);
 
@@ -282,48 +323,53 @@ int main ()
     while(1) {
         printf ("%s%s@%s%s:%s%s%s%s$ ", PINK, userName, hostName, RESET, YELLOW, invitation, &dirName[start_point], RESET);
 
-        object.command = GetNewCommand(&object.size, &object.length, &object.arg_length, object.ampersand);
+        object = GetNewString();
 
-        if (object.command == NULL) {
+        int len = object.length;
+
+        if (len == -1) {
             printf("bash: синтаксическая ошибка рядом с неожиданным маркером «&»\n");
             continue;
         }
 
-        if(DetectExit(object.command, object.length)) {
+        if(DetectExit(object.commands, object.length)) {
+            FreeHeap(object.commands, object.length);
             break;
         }
 
         if (object.length >= 1) {
-            if (!strcmp(object.command[0], "cd")) {
+            for (int k = 0; k < object.length; k++) {
+                char **temp_command = object.commands[k].command;
+                if ((!strcmp(temp_command[0], "cd")) && (object.commands[k].ampersand == 0)) {
 
-                if (object.length > 2) {
-                    printf("bash: cd: слишком много аргументов\n");
+                    if (object.length > 2) {
+                        printf("bash: cd: слишком много аргументов\n");
+                    }
+                    else if(ChangeDir(temp_command)) {
+                        dir_length = GetDir(&dirName);
+
+                        start_point = FindStartPoint(home_dir_length, dir_length, dirName, homeDir);
+
+                        invitation = NeedTwiddle(start_point, nothing, twiddle);
+                    }
                 }
-                else if(ChangeDir(object.command)) {
-                    dir_length = GetDir(&dirName);
-
-                    start_point = FindStartPoint(home_dir_length, dir_length, dirName, homeDir);
-
-                    invitation = NeedTwiddle(start_point, nothing, twiddle);
+                else {
+                    ProcessCommand(temp_command);
                 }
-            }
-            else {
-                ProcessCommand(object.command);
             }
         }
 
-        /*for(int i = 0; i < object.length; i++) {
-            for(int j = 0; j < object.arg_length[i]; j++) {
-                printf("%c", object.command[i][j]);
+        /*for(int k = 0; k <= len; k++) {
+            for(int i = 0; i < object.commands[k].comm_length; i++) {
+                for(int j = 0; j < object.commands[k].arg_length[i]; j++) {
+                    printf("%c", object.commands[k].command[i][j]);
+                }
             }
+            printf(" ");
         }*/
 
-        FreeHeap(object.command, object.length); // Освобождаем место для новой команды
+        FreeHeap(object.commands, object.length); // Освобождаем место для новой команды
     }
-
-
-    FreeHeap(object.command, object.length); // Освобождаем место для новой команды
-
 
     return 0;
 }
