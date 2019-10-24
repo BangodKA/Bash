@@ -320,7 +320,10 @@ int main ()
 
     const char * invitation = twiddle;
 
+    int amp_amount = 0;
+
     while(1) {
+        printf("%d\n", getpid());
         printf ("%s%s@%s%s:%s%s%s%s$ ", PINK, userName, hostName, RESET, YELLOW, invitation, &dirName[start_point], RESET);
 
         object = GetNewString();
@@ -337,24 +340,48 @@ int main ()
             break;
         }
 
-        if (object.length >= 1) {
+        if ((object.length >= 1) && (object.commands[0].arg_length[0] >= 1)) {
             for (int k = 0; k < object.length; k++) {
                 char **temp_command = object.commands[k].command;
-                if ((!strcmp(temp_command[0], "cd")) && (object.commands[k].ampersand == 0)) {
+                if (!strcmp(temp_command[0], "cd")) {
+                    if (object.commands[k].ampersand == 0) {
 
-                    if (object.length > 2) {
-                        printf("bash: cd: слишком много аргументов\n");
+                        if (object.length > 2) {
+                            printf("bash: cd: слишком много аргументов\n");
+                        }
+                        else if(ChangeDir(temp_command)) {
+                            dir_length = GetDir(&dirName);
+
+                            start_point = FindStartPoint(home_dir_length, dir_length, dirName, homeDir);
+
+                            invitation = NeedTwiddle(start_point, nothing, twiddle);
+                        }
                     }
-                    else if(ChangeDir(temp_command)) {
-                        dir_length = GetDir(&dirName);
-
-                        start_point = FindStartPoint(home_dir_length, dir_length, dirName, homeDir);
-
-                        invitation = NeedTwiddle(start_point, nothing, twiddle);
+                    else {
+                        continue;
                     }
                 }
+
                 else {
-                    ProcessCommand(temp_command);
+                    if (object.commands[k].ampersand == 1) {
+                        if (fork() == 0) {
+                            amp_amount++;
+                            //printf("[%d] %d\n", amp_amount, getpid());
+                            ProcessCommand(temp_command);
+                            //printf("\n[%d]+ Завершён %d        ", amp_amount, getpid());
+                            //for (int j = 0; j < object.commands[k].comm_length; j++) {
+                            //    printf("%s ", object.commands[k].command[j]);
+                            //}
+                            //printf("\n");
+                            printf("376\n");
+                            exit(EXIT_SUCCESS);
+                        }
+                        printf("379\n");
+                    }
+                    else {
+                        printf("381\n");
+                        ProcessCommand(temp_command);
+                    }
                 }
             }
         }
