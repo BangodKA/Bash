@@ -51,6 +51,8 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
+
+int_struct.c
 int
 int_str
 tes 
