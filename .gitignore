@@ -52,11 +52,7 @@ Mkfile.old
 dkms.conf
 
 
-int_struct.c
+NoNeed
 int
-int_str
-int_struct
-tes 
 test.c 
 .vscode
-test
