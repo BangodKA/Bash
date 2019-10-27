@@ -15,18 +15,10 @@
 #include <sys/wait.h>
 #include <string.h>
 
+#include "general/general.h"
 #include "first_step/first_step.h"
 #include "second_third_step/second_third_step.h"
 
-void FreeHeap(CInf *commands, int length) { // Освобождает от команды
-    for (int k = 0; k < length; k++) {
-        for(int i = 0; i <= commands[k].comm_length; i++) {
-            free(commands[k].command[i]);
-        }
-        free(commands[k].command);
-    }
-    free(commands);
-}
 
 int main ()
 {    

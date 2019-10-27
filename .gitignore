@@ -55,6 +55,7 @@ dkms.conf
 int_struct.c
 int
 int_str
+int_struct
 tes 
 test.c 
 .vscode
