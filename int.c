@@ -53,8 +53,9 @@ int main ()
         int child;
         child = waitpid(-1, NULL, WNOHANG);
         if(child > 0) {
-            printf("\n[%d]+ Завершён %d        ", amp_amount, child);
+            printf("\n[%d]+ Завершён %d        \n", amp_amount, child);
             amp_amount--;
+            continue;
             /*for (int j = 0; j < object.commands[k].comm_length; j++) {
                 printf("%s ", object.commands[k].command[j]);
             }*/
@@ -62,6 +63,7 @@ int main ()
 
         
         object = GetNewString();
+        //printf("%s", object.commands[0].command[0]);
 
         int len = object.length;
 

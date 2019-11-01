@@ -101,7 +101,7 @@ void GiveMore3DimSpace (CInf **small, int *data_volume) { // Выделяет в
     *small = big;
 }
 
-int GetNewCommandWord(char **command, int *length, int *arg_length, int *ampersand) { // Добавляет в массив команды новое слово, возвращая последний символ
+int GetNewCommandWord(char **command, int *length, int *arg_length, int *ampersand, int *last_amp) { // Добавляет в массив команды новое слово, возвращая последний символ
     int c;
     int word_size = 16;
     command[*length] = (char*)malloc(word_size * sizeof(char));
@@ -128,6 +128,12 @@ int GetNewCommandWord(char **command, int *length, int *arg_length, int *ampersa
             j++;
         }
         else {
+            if ((c == '\n') && (*last_amp == 1)) {
+                c = -1;
+            }
+            else {
+                (*last_amp) = 0;
+            }
             break;
         }
     } while(1);
@@ -141,15 +147,15 @@ int GetNewCommandWord(char **command, int *length, int *arg_length, int *ampersa
     return c;
 }
 
-char **GetNewCommand(CInf *commands, int len, int *exit_symbol) {
+char **GetNewCommand(CInf *commands, int len, int *exit_symbol, int *last_amp) {
     int comm_size = 16;
     commands[len].command = (char **)malloc(comm_size * sizeof(char *));
     commands[len].arg_length = (int *)malloc(comm_size * sizeof(int));
     commands[len].ampersand = 0;
     int comm_length = 0;
     while(1) { // Последний прочитанный мог быть пробелом, тогда получаем еще слова
-        *exit_symbol = GetNewCommandWord(commands[len].command, &comm_length, commands[len].arg_length, &commands[len].ampersand);
-        if ((*exit_symbol == '\n') || (*exit_symbol == '&') || (*exit_symbol == 1)) {
+        *exit_symbol = GetNewCommandWord(commands[len].command, &comm_length, commands[len].arg_length, &commands[len].ampersand, last_amp);
+        if ((*exit_symbol == '\n') || (*exit_symbol == '&') || (*exit_symbol == 1) || (*exit_symbol == -1)) {
             break;
         }
         
@@ -177,20 +183,29 @@ Comms GetNewString() {
     object.commands = (CInf *)malloc(size * sizeof(CInf));
     object.length = 0;
     int exit_symbol = '\0';
+    int last_amp = 0;
     while(exit_symbol != '\n') {
 
         if (object.length == size) {
             GiveMore3DimSpace(&object.commands, &size);
         }
 
-        GetNewCommand(object.commands, object.length, &exit_symbol);
+        GetNewCommand(object.commands, object.length, &exit_symbol, &last_amp);
 
         if (exit_symbol == 1) {
             object.length = -1;
             break;
         }
+
+        if (exit_symbol == -1) {
+            break;
+        }
         
         object.length++;
+
+        if (exit_symbol == '&') {
+            last_amp = 1;
+        }
     }
 
     return object;
