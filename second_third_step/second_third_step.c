@@ -82,18 +82,17 @@ void ProcessCommand(char **command, int ampersand, int *amp_amount) { // Вып�
         printf("%s\n", "Something went wrong");
     }
     else if (child == 0) {
-        printf("xhdffgdh");
-        /*if (ampersand) {
-            (*amp_amount)++;
-            printf("%d %d", *amp_amount, getpid());
-        }*/
-        execvp(command[0], command); // Исполнение команды bash                                                                                                                                                                
+        execvp(command[0], command);
         printf("%s: команда не найдена\n", command[0]);
         exit(EXIT_FAILURE);
     }
     else {
         if (!ampersand) {
             waitpid(child, NULL, WUNTRACED);
+        }
+        else {
+            (*amp_amount)++;
+            printf("[%d] %d\n", *amp_amount, child);
         }
     }
 }

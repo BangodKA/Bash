@@ -107,12 +107,18 @@ int GetNewCommandWord(char **command, int *length, int *arg_length, int *ampersa
     command[*length] = (char*)malloc(word_size * sizeof(char));
     arg_length[*length] = 0;
     int j = 0;
+    int back_sl = 0;
     do {
         if (j == word_size) {
             GiveMoreSpace(&command[*length], &word_size);
         }
 
         c = getchar();
+
+        if (c == '\\') {
+            back_sl = 1;
+            continue;
+        }
 
         if (c == '&') {
             if ((*length == 0) && (j == 0)) {
@@ -128,6 +134,10 @@ int GetNewCommandWord(char **command, int *length, int *arg_length, int *ampersa
             j++;
         }
         else {
+            if ((c == '\n') && (back_sl == 1)) {
+                back_sl = 0;
+                continue;
+            }
             if ((c == '\n') && (*last_amp == 1)) {
                 c = -1;
             }
