@@ -44,11 +44,21 @@ int main ()
     const char * invitation = twiddle;
 
 
+    int amp_amount = 0;
+
     while(1) {
 
         printf ("%s%s@%s%s:%s%s%s%s$ ", PINK, userName, hostName, RESET, YELLOW, invitation, &dirName[start_point], RESET);
 
-        waitpid(-1, NULL, WNOHANG);
+        int child;
+        child = waitpid(-1, NULL, WNOHANG);
+        if(child > 0) {
+            printf("\n[%d]+ Завершён %d        ", amp_amount, child);
+            amp_amount--;
+            /*for (int j = 0; j < object.commands[k].comm_length; j++) {
+                printf("%s ", object.commands[k].command[j]);
+            }*/
+        }
 
         
         object = GetNewString();
@@ -82,7 +92,7 @@ int main ()
                     }
                 }
                 else {
-                    ProcessCommand(temp_command, object.commands[k].ampersand);
+                    ProcessCommand(temp_command, object.commands[k].ampersand, &amp_amount);
                 }
             }
         }

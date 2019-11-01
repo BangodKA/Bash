@@ -75,13 +75,17 @@ const char * const NeedTwiddle(int start_point, const char * const nothing, cons
     }
 }
 
-void ProcessCommand(char **command, int ampersand) { // Выполнение команды API
+void ProcessCommand(char **command, int ampersand, int *amp_amount) { // Выполнение команды API
     pid_t child;
     child = fork();
     if (child  < 0) {
         printf("%s\n", "Something went wrong");
     }
     else if (child == 0) {
+        if (ampersand) {
+            (*amp_amount)++;
+            printf("%d %d", *amp_amount, getpid());
+        }
         execvp(command[0], command); // Исполнение команды bash                                                                                                                                                                
         printf("%s: команда не найдена\n", command[0]);
         exit(EXIT_FAILURE);
