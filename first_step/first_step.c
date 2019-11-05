@@ -101,6 +101,38 @@ void GiveMore3DimSpace (CInf **small, int *data_volume) { // Выделяет в
     *small = big;
 }
 
+int GetNewSymbol(int *back_sl, int *quote, int *double_quote, int *ampersand) {
+    int c = getchar();
+    if (c == '\\') {
+        if (*back_sl == 1) {
+            *back_sl = 0;
+        }
+        else {
+            *back_sl = 1;
+            return -1;
+        }
+    }
+
+    if ((c == '"') && (!(*quote))) {
+        *double_quote ^= 1;
+        return -1;
+    }
+
+    if ((c == '\'') && (!(*double_quote))) {
+        *quote ^= 1;
+        return -1;
+    }
+
+    if (c == '&') {
+        /*if (j == 0) {
+            while(getchar() != '\n'); // cчитываем лишний ввод
+            return 1;
+        }*/
+        *ampersand = 1;
+    }
+    return c;
+}
+
 int GetNewCommandWord(char **command, int *length, int *arg_length, int *ampersand, int *last_amp) { // Добавляет в массив команды новое слово, возвращая последний символ
     int c;
     int word_size = 16;
@@ -108,30 +140,27 @@ int GetNewCommandWord(char **command, int *length, int *arg_length, int *ampersa
     arg_length[*length] = 0;
     int j = 0;
     int back_sl = 0;
+    int double_quote = 0;
+    int qoute = 0;
     do {
         if (j == word_size) {
             GiveMoreSpace(&command[*length], &word_size);
         }
 
-        c = getchar();
+        c = GetNewSymbol(&back_sl, &qoute, &double_quote, ampersand);
 
-        if (c == '\\') {
-            back_sl = 1;
+        if (c == -1) {
             continue;
         }
 
-        if (c == '&') {
-            if ((*length == 0) && (j == 0)) {
-                while(getchar() != '\n'); // cчитываем лишний ввод
-                return 1;
-            }
-            *ampersand = 1;
-            break;
-        }
+        /*if (c == 1) {
+            return 1;
+        }*/
 
-        if (c != ' ' && c != '\n' && c != '\t' && c != '\r') { // Новый символ текущего слова команды
+        if ((c != ' ' && c != '\n' && c != '\t' && c != '\r' && c != '&') || (double_quote == 1) || (qoute == 1)) { // Новый символ текущего слова команды
             command[*length][j] = c;
             j++;
+            back_sl = 0;
         }
         else {
             if ((c == '\n') && (back_sl == 1)) {
@@ -202,10 +231,10 @@ Comms GetNewString() {
 
         GetNewCommand(object.commands, object.length, &exit_symbol, &last_amp);
 
-        if (exit_symbol == 1) {
+        /*if (exit_symbol == 1) {
             object.length = -1;
             break;
-        }
+        }*/
 
         if (exit_symbol == -1) {
             break;
