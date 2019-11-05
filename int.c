@@ -30,7 +30,7 @@ int main ()
     char hostName[HOST_NAME_MAX + 1]; // Массив, где будет храниться имя хоста
     //object.command[0] = NULL;
 
-    Comms object;
+    CPipe object;
 
     CreateCommandPrompt(&dirName, userName, hostName, &dir_length);
 
@@ -62,27 +62,28 @@ int main ()
         }
 
         
-        object = GetNewString();
+        object = GetNewCommPipe();
+        //printf("%s\n", object.comm_pipes[object.length - 1].commands[0].command[0]);
         //printf("%s", object.commands[0].command[0]);
 
-        int len = object.length;
+        int len = object.comm_pipes[object.length - 1].length;
 
         if (len == -1) {
             printf("bash: синтаксическая ошибка рядом с неожиданным маркером «&»\n");
             continue;
         }
 
-        if(DetectExit(object.commands, object.length)) {
-            FreeHeap(object.commands, object.length);
+        if(DetectExit(object.comm_pipes[object.length - 1].commands, len)) {
+            FreeHeap(object.comm_pipes[object.length - 1].commands, len);
             break;
         }
 
-        if ((object.length >= 1) && (object.commands[0].arg_length[0] >= 1)) {
-            for (int k = 0; k < object.length; k++) {
-                char **temp_command = object.commands[k].command;
+        if ((object.comm_pipes[object.length - 1].length >= 1) && (object.comm_pipes[object.length - 1].commands[0].arg_length[0] >= 1)) {
+            for (int k = 0; k < object.comm_pipes[object.length - 1].length; k++) {
+                char **temp_command = object.comm_pipes[object.length - 1].commands[k].command;
                 
                 if (!strcmp(temp_command[0], "cd")) {
-                    if (object.length > 2) {
+                    if (object.comm_pipes[object.length - 1].length > 2) {
                         printf("bash: cd: слишком много аргументов\n");
                     }
                     else if(ChangeDir(temp_command)) {
@@ -94,7 +95,7 @@ int main ()
                     }
                 }
                 else {
-                    ProcessCommand(temp_command, object.commands[k].ampersand, &amp_amount);
+                    ProcessCommand(temp_command, object.comm_pipes[object.length - 1].commands[k].ampersand, &amp_amount);
                 }
             }
         }
@@ -108,7 +109,7 @@ int main ()
             printf(" ");
         }*/
 
-        FreeHeap(object.commands, object.length); // Освобождаем место для новой команды
+        FreeHeap(object.comm_pipes[object.length - 1].commands, object.comm_pipes[object.length - 1].length); // Освобождаем место для новой команды
     }
 
     return 0;

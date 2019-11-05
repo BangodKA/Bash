@@ -128,7 +128,7 @@ int GetNewCommandWord(char **command, int *length, int *arg_length, int *ampersa
     return c;
 }
 
-char **GetNewCommand(CInf *commands, int len, int *exit_symbol, int *last_amp) {
+void GetNewCommand(CInf *commands, int len, int *exit_symbol, int *last_amp) {
     int comm_size = 16;
     commands[len].command = (char **)malloc(comm_size * sizeof(char *));
     commands[len].arg_length = (int *)malloc(comm_size * sizeof(int));
@@ -154,43 +154,36 @@ char **GetNewCommand(CInf *commands, int len, int *exit_symbol, int *last_amp) {
     commands[len].command[comm_length] = NULL;                                    // для execvp
 
     commands[len].comm_length = comm_length;
-
-    return commands[len].command;
 }
 
-Comms GetNewString() {
-    Comms object;
+void GetNewString(Comms *comms_pipe, int pipe_length, int *exit_symbol) {
     int size = 16;
-    object.commands = (CInf *)malloc(size * sizeof(CInf));
-    object.length = 0;
-    int exit_symbol = '\0';
+    comms_pipe[pipe_length].commands = (CInf *)malloc(size * sizeof(CInf));
+    comms_pipe[pipe_length].length = 0;
     int last_amp = 0;
-    while(exit_symbol != '\n') {
+    while((*exit_symbol != '\n') && (*exit_symbol != '|')) {
 
-        if (object.length == size) {
-            GiveMore3DimSpace(&object.commands, &size);
+        if (comms_pipe[pipe_length].length == size) {
+            GiveMore3DimSpace(&comms_pipe[pipe_length].commands, &size);
         }
 
-        GetNewCommand(object.commands, object.length, &exit_symbol, &last_amp);
+        GetNewCommand(comms_pipe[pipe_length].commands, comms_pipe[pipe_length].length, exit_symbol, &last_amp);
 
         /*if (exit_symbol == 1) {
             object.length = -1;
             break;
         }*/
 
-        if (exit_symbol == -1) {
+        if (*exit_symbol == -1) {
             break;
         }
         
-        object.length++;
+        comms_pipe[pipe_length].length++;
 
-        if (exit_symbol == '&') {
+        if (*exit_symbol == '&') {
             last_amp = 1;
         }
     }
-
-    return object;
-
 }
 
 CPipe GetNewCommPipe() {
@@ -205,14 +198,10 @@ CPipe GetNewCommPipe() {
             GiveMore4DimSpace(&huge_object.comm_pipes, &size);
         }
 
-        GetNewString(&huge_object.comm_pipes, huge_object.length, &exit_symbol);
-
-        /*if (exit_symbol == 1) {
-            object.length = -1;
-            break;
-        }*/
+        GetNewString(huge_object.comm_pipes, huge_object.length, &exit_symbol);
 
         if (exit_symbol == -1) {
+            huge_object.length++;
             break;
         }
         
