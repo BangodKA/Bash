@@ -4,21 +4,8 @@
 #include <stdlib.h> // Для определения домашней директории
 #include <string.h>
 #include <unistd.h>
+#include "reallocs.h"
 
-
-
-typedef struct CommInf{
-    char **command;
-    int size;
-    int comm_length;
-    int *arg_length;
-    int ampersand;
-}CInf;
-
-typedef struct Commands{
-    CInf *commands;
-    int length;
-}Comms;
 
 int GetHomeDirLen(char **homeDir) {
     *homeDir = getenv("HOME"); // Определяем домашнюю директорию
@@ -55,51 +42,6 @@ void CreateCommandPrompt(char **dirName, char *userName, char *hostName, int *di
 
     gethostname(hostName, HOST_NAME_MAX); 
 } 
-
-void Copy(const char *small, char *big, int data_volume) { // Копирует из одной области память в другую
-    for(int i = 0; i < data_volume; i++) {
-        big[i] = small[i];
-    }
-}
-
-void GiveMoreSpace (char **small, int *data_volume) { // Выделяет в два раза больше места под массив
-    int temp = *data_volume;
-    *data_volume *= 2;
-    char* big = (char *)malloc(*data_volume * sizeof(char));
-    Copy(*small, big, temp);
-    free(*small);
-    *small = big;
-}
-
-void CopyTwoDim(char **small, char **big, int data_volume) { // Копирует двумерный массив из одной области память в другую двумерный массив
-    for(int i = 0; i < data_volume; i++) {
-        big[i] = small[i];
-    }
-}
-
-void GiveMoreTwoDimSpace (char ***small, int *data_volume) { // Выделяет в два раза больше места под массив строк
-    int temp = *data_volume;
-    *data_volume *= 2;
-    char **big = (char **)malloc(*data_volume * sizeof(char *));
-    CopyTwoDim(*small, big, temp);
-    free(*small);
-    *small = big;
-}
-
-void Copy3Dim(CInf *small, CInf *big, int data_volume) { // Копирует двумерный массив из одной области память в другую двумерный массив
-    for(int i = 0; i < data_volume; i++) {
-        big[i] = small[i];
-    }
-}
-
-void GiveMore3DimSpace (CInf **small, int *data_volume) { // Выделяет в два раза больше места под массив строк
-    int temp = *data_volume;
-    *data_volume *= 2;
-    CInf *big = (CInf *)malloc(*data_volume * sizeof(CInf));
-    Copy3Dim(*small, big, temp);
-    free(*small);
-    *small = big;
-}
 
 int GetNewSymbol(int *back_sl, int *quote, int *double_quote, int *ampersand) {
     int c = getchar();
@@ -249,4 +191,33 @@ Comms GetNewString() {
 
     return object;
 
+}
+
+CPipe GetNewCommPipe() {
+    CPipe huge_object;
+    int size = 16;
+    huge_object.comm_pipes = (Comms *)malloc(size * sizeof(Comms));
+    huge_object.length = 0;
+    int exit_symbol = '\0';
+    while(exit_symbol != '\n') {
+
+        if (huge_object.length == size) {
+            GiveMore4DimSpace(&huge_object.comm_pipes, &size);
+        }
+
+        GetNewString(&huge_object.comm_pipes, huge_object.length, &exit_symbol);
+
+        /*if (exit_symbol == 1) {
+            object.length = -1;
+            break;
+        }*/
+
+        if (exit_symbol == -1) {
+            break;
+        }
+        
+        huge_object.length++;
+    }
+
+    return huge_object;
 }

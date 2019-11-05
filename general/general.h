@@ -13,4 +13,9 @@ typedef struct Commands{
     int length;
 }Comms;
 
+typedef struct CommandPipe{
+    Comms *comm_pipes;
+    int length;
+}CPipe;
+
 void FreeHeap(CInf *commands, int length);

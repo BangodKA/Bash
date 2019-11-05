@@ -5,19 +5,7 @@
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-
-typedef struct CommInf{
-    char **command;
-    int size;
-    int comm_length;
-    int *arg_length;
-    int ampersand;
-}CInf;
-
-typedef struct Commands{
-    CInf *commands;
-    int length;
-}Comms;
+#include "../general/general.h"
 
 int DetectExit(CInf *commands, int length) { // Обнаруживает exit
     for (int i = 0; i < length; i++) {

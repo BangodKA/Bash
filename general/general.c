@@ -21,6 +21,11 @@ typedef struct Commands{
     int length;
 }Comms;
 
+typedef struct CommandPipe{
+    Comms *comm_pipes;
+    int length;
+}CPipe;
+
 void FreeHeap(CInf *commands, int length) { // Освобождает от команды
     for (int k = 0; k < length; k++) {
         for(int i = 0; i <= commands[k].comm_length; i++) {
