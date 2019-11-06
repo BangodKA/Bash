@@ -28,9 +28,9 @@ int main ()
     int home_dir_length = 0;
     char userName[LOGIN_NAME_MAX + 1]; // Указатель на область, где будет храниться имя пользователя
     char hostName[HOST_NAME_MAX + 1]; // Массив, где будет храниться имя хоста
-    //object.command[0] = NULL;
+    //full_command.command[0] = NULL;
 
-    CPipe object;
+    CPipe full_command;
 
     CreateCommandPrompt(&dirName, userName, hostName, &dir_length);
 
@@ -45,6 +45,7 @@ int main ()
 
 
     int amp_amount = 0;
+    //printf("%d", getpid());
 
     while(1) {
 
@@ -52,38 +53,48 @@ int main ()
 
         int child;
         child = waitpid(-1, NULL, WNOHANG);
-        if(child > 0) {
+        if (child > 0) {
             printf("\n[%d]+ Завершён %d        \n", amp_amount, child);
             amp_amount--;
             continue;
-            /*for (int j = 0; j < object.commands[k].comm_length; j++) {
-                printf("%s ", object.commands[k].command[j]);
+            /*for (int j = 0; j < full_command.commands[k].comm_length; j++) {
+                printf("%s ", full_command.commands[k].command[j]);
             }*/
         }
 
         
-        object = GetNewCommPipe();
-        //printf("%s\n", object.comm_pipes[object.length - 1].commands[0].command[0]);
-        //printf("%s", object.commands[0].command[0]);
+        full_command = GetNewCommPipe();
+        //printf("%s\n", full_command.comm_pipes[full_command.length - 1].commands[0].command[0]);
+        //printf("%s", full_command.commands[0].command[0]);
 
-        int len = object.comm_pipes[object.length - 1].length;
+        /*int len = full_command.comm_pipes[0].length;
 
         if (len == -1) {
             printf("bash: синтаксическая ошибка рядом с неожиданным маркером «&»\n");
             continue;
-        }
+        }*/
 
-        if(DetectExit(object.comm_pipes[object.length - 1].commands, len)) {
-            FreeHeap(object.comm_pipes[object.length - 1].commands, len);
+        int len = full_command.comm_pipes[0].length;
+
+        if((!full_command.is_pipeline) && (DetectExit(full_command.comm_pipes[0].background_comms[len - 1].command[0]))) {
+            FreeHeap(full_command.comm_pipes, full_command.length);
+            /*if(fork() == 0) {
+                char *cmd = "free";
+                char *argv[2];
+                argv[0] = "free";
+                argv[1] = NULL;
+                execvp(cmd, argv);
+            }
+            wait(NULL);*/
             break;
         }
 
-        if ((object.comm_pipes[object.length - 1].length >= 1) && (object.comm_pipes[object.length - 1].commands[0].arg_length[0] >= 1)) {
-            for (int k = 0; k < object.comm_pipes[object.length - 1].length; k++) {
-                char **temp_command = object.comm_pipes[object.length - 1].commands[k].command;
+        if ((full_command.comm_pipes[full_command.length - 1].length >= 1) && (full_command.comm_pipes[full_command.length - 1].background_comms[0].arg_length[0] >= 1)) {
+            for (int k = 0; k < full_command.comm_pipes[full_command.length - 1].length; k++) {
+                char **temp_command = full_command.comm_pipes[full_command.length - 1].background_comms[k].command;
                 
                 if (!strcmp(temp_command[0], "cd")) {
-                    if (object.comm_pipes[object.length - 1].length > 2) {
+                    if (full_command.comm_pipes[full_command.length - 1].length > 2) {
                         printf("bash: cd: слишком много аргументов\n");
                     }
                     else if(ChangeDir(temp_command)) {
@@ -95,21 +106,21 @@ int main ()
                     }
                 }
                 else {
-                    ProcessCommand(temp_command, object.comm_pipes[object.length - 1].commands[k].ampersand, &amp_amount);
+                    ProcessCommand(temp_command, full_command.comm_pipes[full_command.length - 1].background_comms[k].ampersand, &amp_amount);
                 }
             }
         }
 
         /*for(int k = 0; k <= len; k++) {
-            for(int i = 0; i < object.commands[k].comm_length; i++) {
-                for(int j = 0; j < object.commands[k].arg_length[i]; j++) {
-                    printf("%c", object.commands[k].command[i][j]);
+            for(int i = 0; i < full_command.commands[k].comm_length; i++) {
+                for(int j = 0; j < full_command.commands[k].arg_length[i]; j++) {
+                    printf("%c", full_command.commands[k].command[i][j]);
                 }
             }
             printf(" ");
         }*/
 
-        FreeHeap(object.comm_pipes[object.length - 1].commands, object.comm_pipes[object.length - 1].length); // Освобождаем место для новой команды
+        FreeHeap(full_command.comm_pipes, full_command.length); // Освобождаем место для новой команды
     }
 
     return 0;

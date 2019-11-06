@@ -51,7 +51,7 @@ int GetNewSymbol(int *back_sl, int *quote, int *double_quote, int *ampersand) {
         }
         else {
             *back_sl = 1;
-            return -1;
+            return -2;
         }
     }
 
@@ -95,11 +95,26 @@ int GetNewCommandWord(char **command, int *length, int *arg_length, int *ampersa
             continue;
         }
 
+        if (c == -2) {
+            if (!qoute) {
+                continue;
+            }
+            else
+            {
+                c = '\\';
+            }
+            
+        }
+
         /*if (c == 1) {
             return 1;
         }*/
 
-        if ((c != ' ' && c != '\n' && c != '\t' && c != '\r' && c != '&') || (double_quote == 1) || (qoute == 1)) { // Новый символ текущего слова команды
+        if ((c != ' ' && c != '\n' && c != '\t' && c != '\r' && c != '&' && c != '|') || (double_quote == 1) || (qoute == 1)) { // Новый символ текущего слова команды
+            if ((c == '\n') && (back_sl == 1) && (double_quote == 1)) {
+                back_sl = 0;
+                continue;
+            }
             command[*length][j] = c;
             j++;
             back_sl = 0;
@@ -128,46 +143,46 @@ int GetNewCommandWord(char **command, int *length, int *arg_length, int *ampersa
     return c;
 }
 
-void GetNewCommand(CInf *commands, int len, int *exit_symbol, int *last_amp) {
+void GetNewCommand(CInf *background_comms, int len, int *exit_symbol, int *last_amp) {
     int comm_size = 16;
-    commands[len].command = (char **)malloc(comm_size * sizeof(char *));
-    commands[len].arg_length = (int *)malloc(comm_size * sizeof(int));
-    commands[len].ampersand = 0;
+    background_comms[len].command = (char **)malloc(comm_size * sizeof(char *));
+    background_comms[len].arg_length = (int *)malloc(comm_size * sizeof(int));
+    background_comms[len].ampersand = 0;
     int comm_length = 0;
     while(1) { // Последний прочитанный мог быть пробелом, тогда получаем еще слова
-        *exit_symbol = GetNewCommandWord(commands[len].command, &comm_length, commands[len].arg_length, &commands[len].ampersand, last_amp);
-        if ((*exit_symbol == '\n') || (*exit_symbol == '&') || (*exit_symbol == 1) || (*exit_symbol == -1)) {
+        *exit_symbol = GetNewCommandWord(background_comms[len].command, &comm_length, background_comms[len].arg_length, &background_comms[len].ampersand, last_amp);
+        if ((*exit_symbol == '\n') || (*exit_symbol == '&') || (*exit_symbol == 1) || (*exit_symbol == -1) || (*exit_symbol == '|')) {
             break;
         }
         
         if (comm_length == comm_size) {
-            GiveMoreTwoDimSpace(&commands[len].command, &comm_size);
+            GiveMoreTwoDimSpace(&background_comms[len].command, &comm_size);
         }
     }
 
     
     if (comm_length == comm_size) {
-        GiveMoreTwoDimSpace(&commands[len].command, &comm_size);
+        GiveMoreTwoDimSpace(&background_comms[len].command, &comm_size);
     }
 
-    commands[len].command[comm_length] = (char*)malloc(10 * sizeof(char)); // Маркер завершения команды
-    commands[len].command[comm_length] = NULL;                                    // для execvp
+    background_comms[len].command[comm_length] = (char*)malloc(10 * sizeof(char)); // Маркер завершения команды
+    background_comms[len].command[comm_length] = NULL;                                    // для execvp
 
-    commands[len].comm_length = comm_length;
+    background_comms[len].comm_length = comm_length;
 }
 
 void GetNewString(Comms *comms_pipe, int pipe_length, int *exit_symbol) {
     int size = 16;
-    comms_pipe[pipe_length].commands = (CInf *)malloc(size * sizeof(CInf));
+    comms_pipe[pipe_length].background_comms = (CInf *)malloc(size * sizeof(CInf));
     comms_pipe[pipe_length].length = 0;
     int last_amp = 0;
     while((*exit_symbol != '\n') && (*exit_symbol != '|')) {
 
         if (comms_pipe[pipe_length].length == size) {
-            GiveMore3DimSpace(&comms_pipe[pipe_length].commands, &size);
+            GiveMore3DimSpace(&comms_pipe[pipe_length].background_comms, &size);
         }
 
-        GetNewCommand(comms_pipe[pipe_length].commands, comms_pipe[pipe_length].length, exit_symbol, &last_amp);
+        GetNewCommand(comms_pipe[pipe_length].background_comms, comms_pipe[pipe_length].length, exit_symbol, &last_amp);
 
         /*if (exit_symbol == 1) {
             object.length = -1;
@@ -187,26 +202,31 @@ void GetNewString(Comms *comms_pipe, int pipe_length, int *exit_symbol) {
 }
 
 CPipe GetNewCommPipe() {
-    CPipe huge_object;
+    CPipe full_command;
     int size = 16;
-    huge_object.comm_pipes = (Comms *)malloc(size * sizeof(Comms));
-    huge_object.length = 0;
+    full_command.comm_pipes = (Comms *)malloc(size * sizeof(Comms));
+    full_command.length = 0;
+    full_command.is_pipeline = 0;
     int exit_symbol = '\0';
     while(exit_symbol != '\n') {
 
-        if (huge_object.length == size) {
-            GiveMore4DimSpace(&huge_object.comm_pipes, &size);
+        if (full_command.length == size) {
+            GiveMore4DimSpace(&full_command.comm_pipes, &size);
         }
-
-        GetNewString(huge_object.comm_pipes, huge_object.length, &exit_symbol);
+        exit_symbol = '\0';
+        GetNewString(full_command.comm_pipes, full_command.length, &exit_symbol);
 
         if (exit_symbol == -1) {
-            huge_object.length++;
+            full_command.length++;
             break;
         }
+
+        if ((!full_command.is_pipeline) && (exit_symbol == '|')) {
+            full_command.is_pipeline = 1;
+        }
         
-        huge_object.length++;
+        full_command.length++;
     }
 
-    return huge_object;
+    return full_command;
 }

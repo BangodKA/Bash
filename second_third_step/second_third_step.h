@@ -1,6 +1,6 @@
 #pragma once
 
-int DetectExit(CInf *commands, int length);
+int DetectExit(char *commands);
 
 void GoHome();
 

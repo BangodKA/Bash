@@ -17,21 +17,25 @@ typedef struct CommInf{
 }CInf;
 
 typedef struct Commands{
-    CInf *commands;
+    CInf *background_comms;
     int length;
 }Comms;
 
 typedef struct CommandPipe{
     Comms *comm_pipes;
     int length;
+    int is_pipeline;
 }CPipe;
 
-void FreeHeap(CInf *commands, int length) { // Освобождает от команды
-    for (int k = 0; k < length; k++) {
-        for(int i = 0; i <= commands[k].comm_length; i++) {
-            free(commands[k].command[i]);
+void FreeHeap(Comms *comm_pipes, int length) { // Освобождает от команды
+    for (int j = 0; j < length; j++) {
+        for (int k = 0; k < comm_pipes[j].length; k++) {
+            for(int i = 0; i <= comm_pipes[j].background_comms[k].comm_length; i++) {
+                free(comm_pipes[j].background_comms[k].command[i]);
+            }
+            free(comm_pipes[j].background_comms[k].command);
         }
-        free(commands[k].command);
+        free(comm_pipes[j].background_comms);
     }
-    free(commands);
+    free(comm_pipes);
 }

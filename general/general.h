@@ -9,13 +9,14 @@ typedef struct CommInf{
 }CInf;
 
 typedef struct Commands{
-    CInf *commands;
+    CInf *background_comms;
     int length;
 }Comms;
 
 typedef struct CommandPipe{
     Comms *comm_pipes;
     int length;
+    int is_pipeline;
 }CPipe;
 
-void FreeHeap(CInf *commands, int length);
+void FreeHeap(Comms *commands, int length);

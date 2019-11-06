@@ -7,12 +7,10 @@
 #include <sys/wait.h>
 #include "../general/general.h"
 
-int DetectExit(CInf *commands, int length) { // Обнаруживает exit
-    for (int i = 0; i < length; i++) {
-        if (commands[i].comm_length > 0) {
-            if ((strcmp(commands[i].command[0], "exit") == 0) && (commands[i].ampersand == 0)) {
-                return 1;
-            }
+int DetectExit(char *command) { // Обнаруживает exit
+    if (command != NULL) {
+        if (strcmp(command, "exit") == 0) {
+            return 1;
         }
     }
     return 0;
@@ -70,6 +68,9 @@ void ProcessCommand(char **command, int ampersand, int *amp_amount) { // Вып�
         printf("%s\n", "Something went wrong");
     }
     else if (child == 0) {
+        if (DetectExit(command[0])) {
+            exit(EXIT_SUCCESS);
+        }
         execvp(command[0], command);
         printf("%s: команда не найдена\n", command[0]);
         exit(EXIT_FAILURE);
