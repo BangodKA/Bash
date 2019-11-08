@@ -77,17 +77,19 @@ int main ()
 
         int len = full_command.comm_pipes[0].length;
 
-        if((!full_command.is_pipeline) && (DetectExit(full_command.comm_pipes[0].background_comms[len - 1].command[0]))) {
-            FreeHeap(full_command.comm_pipes, full_command.length);
-            /*if(fork() == 0) {
-                char *cmd = "free";
-                char *argv[2];
-                argv[0] = "free";
-                argv[1] = NULL;
-                execvp(cmd, argv);
+        if ((!full_command.is_pipeline) && (!full_command.comm_pipes[0].background_comms[len - 1].ampersand)) {
+            if (DetectExit(full_command.comm_pipes[0].background_comms[len - 1].command[0])) {
+                FreeHeap(full_command.comm_pipes, full_command.length);
+                /*if(fork() == 0) {
+                    char *cmd = "free";
+                    char *argv[2];
+                    argv[0] = "free";
+                    argv[1] = NULL;
+                    execvp(cmd, argv);
+                }
+                wait(NULL);*/
+                break;
             }
-            wait(NULL);*/
-            break;
         }
         
         if (full_command.is_pipeline) {
@@ -95,9 +97,7 @@ int main ()
             pipe(save);
             dup2(1, save[1]);
             dup2(0, save[0]);
-            int fd[2];
-            pipe(fd);
-            ProcessCommsPipe(full_command, (full_command.length - 1), fd, save);
+            ProcessCommsPipe(full_command, (full_command.length - 1));
             FreeHeap(full_command.comm_pipes, full_command.length);
             dup2(save[1], 1);
             dup2(save[0], 0);
@@ -123,8 +123,6 @@ int main ()
                     }
                 }
                 else {
-                    int fd[2];
-                    pipe(fd);
                     ProcessCommand(temp_command, full_command.comm_pipes[full_command.length - 1].background_comms[k].ampersand, &amp_amount);
                 }
             }
