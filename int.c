@@ -15,9 +15,10 @@
 #include <sys/wait.h>
 #include <string.h>
 
-#include "general/general.h"
-#include "first_step/first_step.h"
-#include "second_third_step/second_third_step.h"
+#include "0_general/general.h"
+#include "1_first_step/first_step.h"
+#include "2_3_second_third_step/second_third_step.h"
+#include "4_fourth_step/fourth_step.h"
 
 
 int main ()
@@ -48,13 +49,11 @@ int main ()
     //printf("%d", getpid());
 
     while(1) {
-
-        printf ("%s%s@%s%s:%s%s%s%s$ ", PINK, userName, hostName, RESET, YELLOW, invitation, &dirName[start_point], RESET);
-
+        
         int child;
         child = waitpid(-1, NULL, WNOHANG);
         if (child > 0) {
-            printf("\n[%d]+ Завершён %d        \n", amp_amount, child);
+            printf("[%d]+ Завершён %d        \n", amp_amount, child);
             amp_amount--;
             continue;
             /*for (int j = 0; j < full_command.commands[k].comm_length; j++) {
@@ -62,8 +61,10 @@ int main ()
             }*/
         }
 
-        
+        printf ("%s%s@%s%s:%s%s%s%s$ ", PINK, userName, hostName, RESET, YELLOW, invitation, &dirName[start_point], RESET);
+
         full_command = GetNewCommPipe();
+
         //printf("%s\n", full_command.comm_pipes[full_command.length - 1].commands[0].command[0]);
         //printf("%s", full_command.commands[0].command[0]);
 
@@ -88,12 +89,28 @@ int main ()
             wait(NULL);*/
             break;
         }
+        
+        if (full_command.is_pipeline) {
+            int save[2];
+            pipe(save);
+            dup2(1, save[1]);
+            dup2(0, save[0]);
+            int fd[2];
+            pipe(fd);
+            ProcessCommsPipe(full_command, (full_command.length - 1), fd, save);
+            FreeHeap(full_command.comm_pipes, full_command.length);
+            dup2(save[1], 1);
+            dup2(save[0], 0);
+            close(save[1]);
+            close(save[0]);
+            continue;
+        }
 
         if ((full_command.comm_pipes[full_command.length - 1].length >= 1) && (full_command.comm_pipes[full_command.length - 1].background_comms[0].arg_length[0] >= 1)) {
             for (int k = 0; k < full_command.comm_pipes[full_command.length - 1].length; k++) {
                 char **temp_command = full_command.comm_pipes[full_command.length - 1].background_comms[k].command;
                 
-                if (!strcmp(temp_command[0], "cd")) {
+                if ((!strcmp(temp_command[0], "cd")) && (!full_command.comm_pipes[full_command.length - 1].background_comms[k].ampersand)) {
                     if (full_command.comm_pipes[full_command.length - 1].length > 2) {
                         printf("bash: cd: слишком много аргументов\n");
                     }
@@ -106,6 +123,8 @@ int main ()
                     }
                 }
                 else {
+                    int fd[2];
+                    pipe(fd);
                     ProcessCommand(temp_command, full_command.comm_pipes[full_command.length - 1].background_comms[k].ampersand, &amp_amount);
                 }
             }
