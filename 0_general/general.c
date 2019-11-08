@@ -21,10 +21,31 @@ typedef struct Commands{
     int length;
 }Comms;
 
+typedef struct DoubleArrow {
+    char **file_name;
+    int size;
+    int length;
+}DArr;
+
+typedef struct Arrow {
+    char **file_name;
+    int size;
+    int length;
+}Arr;
+
+typedef struct BackArrow {
+    char **file_name;
+    int size;
+    int length;
+}BArr;
+
 typedef struct CommandPipe{
     Comms *comm_pipes;
     int length;
     int is_pipeline;
+    DArr double_arrow;
+    Arr arrow;
+    BArr back_arrow;
 }CPipe;
 
 void FreeHeap(Comms *comm_pipes, int length) { // Освобождает от команды

@@ -75,7 +75,7 @@ int main ()
             continue;
         }*/
 
-        int len = full_command.comm_pipes[0].length;
+        int len = full_command.length;
 
         if ((!full_command.is_pipeline) && (!full_command.comm_pipes[0].background_comms[len - 1].ampersand)) {
             if (DetectExit(full_command.comm_pipes[0].background_comms[len - 1].command[0])) {
