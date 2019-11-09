@@ -78,19 +78,15 @@ int GetNewSymbol(int *back_sl, int *quote, int *double_quote, int *ampersand) {
     }
 
     if (c == '>') {
-        c = getchar();
-        if (c == '>') {
-            return 2;
-        }
-        return 1;
+        return 2;
     }
     return c;
 }
 
-int GetNewCommandWord(CPipe full_command, int *length, int *last_amp) { // Добавляет в массив команды новое слово, возвращая последний символ
+int GetNewCommandWord(CPipe *full_command, int *length, int *last_amp) { // Добавляет в массив команды новое слово, возвращая последний символ
     int c;
-    CInf *background_comms = full_command.comm_pipes[full_command.length].background_comms;
-    int len = full_command.comm_pipes[full_command.length].length;
+    CInf *background_comms = (*full_command).comm_pipes[(*full_command).length].background_comms;
+    int len = (*full_command).comm_pipes[(*full_command).length].length;
     char **command = background_comms[len].command;
     int *arg_length = background_comms[len].arg_length;
     int *ampersand = &background_comms[len].ampersand;
@@ -108,6 +104,8 @@ int GetNewCommandWord(CPipe full_command, int *length, int *last_amp) { // До�
 
         c = GetNewSymbol(&back_sl, &qoute, &double_quote, ampersand);
 
+        
+
         if (c == -1) {
             continue;
         }
@@ -121,6 +119,70 @@ int GetNewCommandWord(CPipe full_command, int *length, int *last_amp) { // До�
                 c = '\\';
             }
             
+        }
+        if (c == 0) {
+            while (((c = getchar()) == ' ') || c == '\t');
+            int temp_size = 16;
+            int i = 0;
+            if ((*full_command).arrow.length == (*full_command).arrow.size) {
+                GiveMoreTwoDimSpace(&(*full_command).arrow.file_name, &(*full_command).arrow.size);
+            }
+            (*full_command).back_arrow.file_name[(*full_command).back_arrow.length] = (char *)malloc(temp_size * sizeof(char *));
+            while ((c != ' ' && c != '\n' && c != '\t' && c != '\r' && c != '&' && c != '|')) {
+                (*full_command).back_arrow.file_name[(*full_command).back_arrow.length][i] = c;
+                i++;
+                if (i == temp_size) {
+                    GiveMoreSpace(&(*full_command).back_arrow.file_name[(*full_command).back_arrow.length], &temp_size);
+                }
+                c = getchar();
+            }
+            (*full_command).back_arrow.file_name[(*full_command).back_arrow.length][i] = '\0';
+            (*full_command).back_arrow.length += 1;
+            printf("%d\n", (*full_command).back_arrow.length);
+        }
+
+        if (c == 2) {
+            c = getchar();
+            if (c == '>') {
+                while (((c = getchar()) == ' ') || c == '\t');
+                int temp_size = 16;
+                int i = 0;
+                if ((*full_command).double_arrow.length == (*full_command).double_arrow.size) {
+                    GiveMoreTwoDimSpace(&(*full_command).double_arrow.file_name, &(*full_command).double_arrow.size);
+                }
+                (*full_command).double_arrow.file_name[(*full_command).double_arrow.length] = (char *)malloc(temp_size * sizeof(char *));
+                while ((c != ' ' && c != '\n' && c != '\t' && c != '\r' && c != '&' && c != '|')) {
+                    (*full_command).double_arrow.file_name[(*full_command).double_arrow.length][i] = c;
+                    i++;
+                    if (i == temp_size) {
+                        GiveMoreSpace(&(*full_command).double_arrow.file_name[(*full_command).double_arrow.length], &temp_size);
+                    }
+                    c = getchar();
+                }
+                (*full_command).double_arrow.file_name[(*full_command).double_arrow.length][i] = '\0';
+                (*full_command).double_arrow.length += 1;
+            }
+            else {
+                while ((c == ' ') || (c == '\t')) {
+                    c = getchar();
+                }
+                int temp_size = 16;
+                int i = 0;
+                if ((*full_command).arrow.length == (*full_command).arrow.size) {
+                    GiveMoreTwoDimSpace(&(*full_command).arrow.file_name, &(*full_command).arrow.size);
+                }
+                (*full_command).arrow.file_name[(*full_command).arrow.length] = (char *)malloc(temp_size * sizeof(char *));
+                while ((c != ' ' && c != '\n' && c != '\t' && c != '\r' && c != '&' && c != '|')) {
+                    (*full_command).arrow.file_name[(*full_command).arrow.length][i] = c;
+                    i++;
+                    if (i == temp_size) {
+                        GiveMoreSpace(&(*full_command).arrow.file_name[(*full_command).arrow.length], &temp_size);
+                    }
+                    c = getchar();
+                }
+                (*full_command).arrow.file_name[(*full_command).arrow.length][i] = '\0';
+                (*full_command).arrow.length += 1;
+            }
         }
 
         /*if (c == 1) {
@@ -160,10 +222,10 @@ int GetNewCommandWord(CPipe full_command, int *length, int *last_amp) { // До�
     return c;
 }
 
-void GetNewCommand(CPipe full_command, int *exit_symbol, int *last_amp) {
+void GetNewCommand(CPipe *full_command, int *exit_symbol, int *last_amp) {
     int comm_size = 16;
-    CInf *background_comms = full_command.comm_pipes[full_command.length].background_comms;
-    int len = full_command.comm_pipes[full_command.length].length;
+    CInf *background_comms = (*full_command).comm_pipes[(*full_command).length].background_comms;
+    int len = (*full_command).comm_pipes[(*full_command).length].length;
     background_comms[len].command = (char **)malloc(comm_size * sizeof(char *));
     background_comms[len].arg_length = (int *)malloc(comm_size * sizeof(int));
     background_comms[len].ampersand = 0;
@@ -190,10 +252,10 @@ void GetNewCommand(CPipe full_command, int *exit_symbol, int *last_amp) {
     background_comms[len].comm_length = comm_length;
 }
 
-void GetNewString(CPipe full_command, int *exit_symbol, int *conv_end) {
+void GetNewString(CPipe *full_command, int *exit_symbol, int *conv_end) {
     int size = 16;
-    Comms *comms_pipe = full_command.comm_pipes;
-    int pipe_length = full_command.length;
+    Comms *comms_pipe = (*full_command).comm_pipes;
+    int pipe_length = (*full_command).length;
     comms_pipe[pipe_length].background_comms = (CInf *)malloc(size * sizeof(CInf));
     comms_pipe[pipe_length].length = 0;
     int last_amp = 0;
@@ -235,6 +297,15 @@ CPipe GetNewCommPipe() {
     full_command.comm_pipes = (Comms *)malloc(size * sizeof(Comms));
     full_command.length = 0;
     full_command.is_pipeline = 0;
+    full_command.double_arrow.size = 16;
+    full_command.back_arrow.size = 16;
+    full_command.arrow.size = 16;
+    full_command.double_arrow.length = 0;
+    full_command.back_arrow.length = 0;
+    full_command.arrow.length = 0;
+    full_command.double_arrow.file_name = (char **)malloc(full_command.double_arrow.size * sizeof(char *));
+    full_command.arrow.file_name = (char **)malloc(full_command.arrow.size * sizeof(char *));
+    full_command.back_arrow.file_name = (char **)malloc(full_command.back_arrow.size * sizeof(char *));
     int exit_symbol = '\0';
     int conv_end = 0;
     while(1) {
@@ -245,7 +316,7 @@ CPipe GetNewCommPipe() {
             GiveMore4DimSpace(&full_command.comm_pipes, &size);
         }
         exit_symbol = '\0';
-        GetNewString(full_command, &exit_symbol, &conv_end);
+        GetNewString(&full_command, &exit_symbol, &conv_end);
 
         if (exit_symbol == -1) {
             full_command.length++;

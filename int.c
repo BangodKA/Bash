@@ -14,6 +14,8 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 #include "0_general/general.h"
 #include "1_first_step/first_step.h"
@@ -52,15 +54,19 @@ int main ()
         
         int child;
         child = waitpid(-1, NULL, WNOHANG);
-        if (child > 0) {
+        int i = 0;
+        while (child > 0) {
             printf("[%d]+ Завершён %d        \n", amp_amount, child);
             amp_amount--;
-            continue;
+            child = waitpid(-1, NULL, WNOHANG);
             /*for (int j = 0; j < full_command.commands[k].comm_length; j++) {
                 printf("%s ", full_command.commands[k].command[j]);
             }*/
+            i = 1;
         }
-
+        if (i == 1) {
+            continue;
+        }
         printf ("%s%s@%s%s:%s%s%s%s$ ", PINK, userName, hostName, RESET, YELLOW, invitation, &dirName[start_point], RESET);
 
         full_command = GetNewCommPipe();
@@ -91,6 +97,19 @@ int main ()
                 break;
             }
         }
+
+        for (int v = 0; v < full_command.arrow.length - 1; v++) {
+            close(open(full_command.arrow.file_name[v], O_WRONLY | O_TRUNC | O_CREAT, S_IRWXU));
+        }
+
+        for (int v = 0; v < full_command.double_arrow.length - 1; v++) {
+            close(open(full_command.arrow.file_name[v], O_WRONLY | O_APPEND | O_CREAT, S_IRWXU));
+        }
+
+        for (int v = 0; v < full_command.back_arrow.length - 1; v++) {
+            close(open(full_command.arrow.file_name[v], O_RDONLY, S_IRWXU));
+        }
+
         
         if (full_command.is_pipeline) {
             int save[2];
@@ -123,7 +142,29 @@ int main ()
                     }
                 }
                 else {
+                    /*for (int i = 0; i < full_command.arrow.length - 1; i++) {
+                        mkfifo(full_command.arrow.file_name[full_command.arrow.length - 1], S_IFIFO);
+                    }
+                    
+                    mkfifo(full_command.arrow.file_name[full_command.arrow.length - 1], S_IFIFO);
+                    int fd = open(full_command.arrow.file_name[full_command.arrow.length - 1], O_RDWR);
+                    printf("%d", fd);
+                    dup2(fd, 1);
+                    printf("dffhf\n");
                     ProcessCommand(temp_command, full_command.comm_pipes[full_command.length - 1].background_comms[k].ampersand, &amp_amount);
+                    */
+                    int save_out = dup(1);
+                    int save_inp = dup(0);
+                    int fd_out = open(full_command.arrow.file_name[full_command.arrow.length - 1], O_WRONLY | O_TRUNC | O_CREAT, S_IRWXU);
+                    dup2(fd_out, 1); 
+                    close(fd_out);
+                    int fd_inp = open(full_command.arrow.file_name[full_command.back_arrow.length - 1], O_RDONLY, S_IRWXU);
+                    dup2(fd_inp, 0);
+                    close(fd_inp);
+                    ProcessCommand(temp_command, full_command.comm_pipes[full_command.length - 1].background_comms[k].ampersand, &amp_amount);
+                    dup2(save_out, 1);
+                    dup2(save_inp, 0);
+                    close(save_out);
                 }
             }
         }
