@@ -1,48 +1,50 @@
-#include <stdio.h>
+#define _GNU_SOURCE // Для использования констант максимальных значений 
+#include <limits.h> // длины пути, хоста и имени пользователя
+#include <unistd.h> // Для использования команд bash
+#include <stdio.h> 
 #include <stdlib.h> // Для определения домашней директории
-#include <string.h>
-#include <unistd.h>
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include "../0_general/general.h"
-#include "../2_3_second_third_step/second_third_step.h"
+#include <string.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
-void ProcessCommsPipe (CPipe full_command, int part_number) {
-    int amp_amount;
-    for (int s = 0; s < full_command.length; s++) {
-        for (int k = 0; k < full_command.comm_pipes[s].length; k++) {
-            char **temp_command = full_command.comm_pipes[s].background_comms[k].command;
-            if (((k == 0) && (s != 0)) || ((k == full_command.comm_pipes[s].length - 1) && (s != full_command.length - 1))) {
-                int fd[2];
-                pipe(fd);
-                int daughter = fork();
-                if (daughter == 0) {
-                    //printf("%s  @,  %d  \n", temp_command[0], full_command.comm_pipes[s].background_comms[k].ampersand);
-                    if ((k == full_command.comm_pipes[s].length - 1) && (s != full_command.length - 1))
-                    {
-                        dup2(fd[1], 1);
-                    }
-                    close(fd[1]);
-                    close(fd[0]);
-                    
-                    ProcessCommand(temp_command, full_command.comm_pipes[full_command.length - 1].background_comms[k].ampersand, &amp_amount);
-                    exit(EXIT_SUCCESS);
-                }
-                else {
-                    waitpid(daughter, NULL, WUNTRACED);
-                    //printf("%s  #,  %d  \n", temp_command[0], full_command.comm_pipes[s].background_comms[k].ampersand);
-                    dup2(fd[0], 0);
-                    close(fd[1]);
-                    close(fd[0]);
-                }
-                
-            }
-            else {
-                ProcessCommand(temp_command, full_command.comm_pipes[s].background_comms[k].ampersand, &amp_amount);
-            }
-            
+#include "../0_general/general.h"
+
+void AppendWrite(Arrs double_arrow) {
+    int open_res = 0;
+    for (int v = 0; v < double_arrow.length - 1; v++) {
+        open_res = open(double_arrow.file_name[v], O_WRONLY | O_APPEND | O_CREAT, S_IRWXU);
+        if (open_res != -1) {
+            close(open_res);
         }
     }
-    //waitpid(child, NULL, WNOHANG);
 }
+
+void TruncWrite(Arrs arrow) {
+    int open_res = 0;
+    for (int v = 0; v < arrow.length - 1; v++) {
+        open_res = open(arrow.file_name[v], O_WRONLY | O_TRUNC | O_CREAT, S_IRWXU);
+        if (open_res != -1) {
+            close(open_res);
+        }
+    }
+}
+
+int Read(Arrs back_arrow) {
+    int open_res = 0;
+    for (int v = 0; v < back_arrow.length - 1; v++) {
+        open_res = open(back_arrow.file_name[v], O_RDONLY, S_IRWXU);
+        printf("%d", open_res);
+        if (open_res != -1) {
+            close(open_res);
+        }
+        else {
+            printf("bash: %s: Нет такого файла или каталога", back_arrow.file_name[v]);
+            return 0;
+        }
+    }
+    return 1;
+}
+

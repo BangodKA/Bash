@@ -1,3 +1,7 @@
 #pragma once
 
-void ProcessCommsPipe (CPipe full_command, int part_number);
+void AppendWrite(Arrs double_arrow);
+
+void TruncWrite(Arrs arrow);
+
+int Read(Arrs back_arrow);

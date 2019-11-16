@@ -13,50 +13,41 @@ typedef struct CommInf{
     int size;
     int comm_length;
     int *arg_length;
-    int ampersand;
+    int vert_slash;
 }CInf;
 
-typedef struct Commands{
-    CInf *background_comms;
-    int length;
-}Comms;
-
-typedef struct DoubleArrow {
-    char **file_name;
-    int size;
-    int length;
-}DArr;
-
-typedef struct Arrow {
-    char **file_name;
-    int size;
-    int length;
-}Arr;
-
-typedef struct BackArrow {
-    char **file_name;
-    int size;
-    int length;
-}BArr;
-
 typedef struct CommandPipe{
-    Comms *comm_pipes;
+    CInf *pipe_comms;
     int length;
-    int is_pipeline;
-    DArr double_arrow;
-    Arr arrow;
-    BArr back_arrow;
+    int ampersand;
 }CPipe;
 
-void FreeHeap(Comms *comm_pipes, int length) { // Освобождает от команды
+typedef struct Arrows {
+    char **file_name;
+    int size;
+    int length;
+}Arrs;
+
+typedef struct BackgroundComm{
+    CPipe *background_pipes;
+    int length;
+    int not_blank;
+    int last_is_pipeline;
+    int last_is_background;
+    Arrs double_arrow;
+    Arrs arrow;
+    Arrs back_arrow;
+}CBack;
+
+void FreeHeap(CPipe *background_pipes, int length) { // Освобождает от команды
     for (int j = 0; j < length; j++) {
-        for (int k = 0; k < comm_pipes[j].length; k++) {
-            for(int i = 0; i <= comm_pipes[j].background_comms[k].comm_length; i++) {
-                free(comm_pipes[j].background_comms[k].command[i]);
+        for (int k = 0; k < background_pipes[j].length; k++) {
+            for(int i = 0; i <= background_pipes[j].pipe_comms[k].comm_length; i++) {
+                free(background_pipes[j].pipe_comms[k].command[i]);
             }
-            free(comm_pipes[j].background_comms[k].command);
+            free(background_pipes[j].pipe_comms[k].command);
         }
-        free(comm_pipes[j].background_comms);
+        free(background_pipes[j].pipe_comms);
     }
-    free(comm_pipes);
+    free(background_pipes);
 }

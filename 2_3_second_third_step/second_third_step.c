@@ -84,7 +84,7 @@ void ProcessCommand(char **command, int ampersand, int *amp_amount) { // Вып�
         }
         else {
             (*amp_amount)++;
-            printf("%s %s", command[0], command[1]);
+            printf("%s", command[0]);
             printf("[%d] %d\n", *amp_amount, child);
             usleep(5000);
         }

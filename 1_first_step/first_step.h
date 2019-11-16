@@ -6,10 +6,12 @@ int GetDir(char **dirName);
 
 void CreateCommandPrompt(char **dirName, char *userName, char *hostName, int *dir_length);
 
-int GetNewCommandWord(char **command, int *length, int *arg_length, int *ampersand, int *last_amp);
+int GetNewSymbol(int *back_sl, int *quote, int *double_quote, int *vert_slash);
 
-void GetNewCommand(CInf *backgroundcomms, int len, int *exit_symbol, int *last_amp);
+int GetNewCommandWord(CBack *full_command, int *length);
 
-void GetNewString(Comms *comms_pipe, int pipe_length, int *exit_symbol, int *conv_end);
+void GetNewCommand(CBack *full_command, int *exit_symbol);
 
-CPipe GetNewCommPipe();
+void GetNewString(CBack *full_command, int *exit_symbol, int *last_amp);
+
+CBack GetNewCommPipe();

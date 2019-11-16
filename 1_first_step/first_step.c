@@ -43,7 +43,7 @@ void CreateCommandPrompt(char **dirName, char *userName, char *hostName, int *di
     gethostname(hostName, HOST_NAME_MAX); 
 } 
 
-int GetNewSymbol(int *back_sl, int *quote, int *double_quote, int *ampersand) {
+int GetNewSymbol(int *back_sl, int *quote, int *double_quote, int *vert_slash) {
     int c = getchar();
     if (c == '\\') {
         if (*back_sl == 1) {
@@ -65,12 +65,12 @@ int GetNewSymbol(int *back_sl, int *quote, int *double_quote, int *ampersand) {
         return -1;
     }
 
-    if (c == '&') {
+    if (c == '|') {
         /*if (j == 0) {
             while(getchar() != '\n'); // cчитываем лишний ввод
             return 1;
         }*/
-        *ampersand = 1;
+        *vert_slash = 1;
     }
 
     if (c == '<') {
@@ -83,13 +83,13 @@ int GetNewSymbol(int *back_sl, int *quote, int *double_quote, int *ampersand) {
     return c;
 }
 
-int GetNewCommandWord(CPipe *full_command, int *length, int *last_amp) { // Добавляет в массив команды новое слово, возвращая последний символ
+int GetNewCommandWord(CBack *full_command, int *length) { // Добавляет в массив команды новое слово, возвращая последний символ
     int c;
-    CInf *background_comms = (*full_command).comm_pipes[(*full_command).length].background_comms;
-    int len = (*full_command).comm_pipes[(*full_command).length].length;
-    char **command = background_comms[len].command;
-    int *arg_length = background_comms[len].arg_length;
-    int *ampersand = &background_comms[len].ampersand;
+    CInf *pipe_comms = (*full_command).background_pipes[(*full_command).length].pipe_comms;
+    int len = (*full_command).background_pipes[(*full_command).length].length;
+    char **command = pipe_comms[len].command;
+    int *arg_length = pipe_comms[len].arg_length;
+    int *pipeline = &pipe_comms[len].vert_slash;
     int word_size = 16;
     command[*length] = (char*)malloc(word_size * sizeof(char));
     arg_length[*length] = 0;
@@ -102,7 +102,7 @@ int GetNewCommandWord(CPipe *full_command, int *length, int *last_amp) { // До
             GiveMoreSpace(&command[*length], &word_size);
         }
 
-        c = GetNewSymbol(&back_sl, &qoute, &double_quote, ampersand);
+        c = GetNewSymbol(&back_sl, &qoute, &double_quote, pipeline);
 
         
 
@@ -124,8 +124,8 @@ int GetNewCommandWord(CPipe *full_command, int *length, int *last_amp) { // До
             while (((c = getchar()) == ' ') || c == '\t');
             int temp_size = 16;
             int i = 0;
-            if ((*full_command).arrow.length == (*full_command).arrow.size) {
-                GiveMoreTwoDimSpace(&(*full_command).arrow.file_name, &(*full_command).arrow.size);
+            if ((*full_command).back_arrow.length == (*full_command).back_arrow.size) {
+                GiveMoreTwoDimSpace(&(*full_command).back_arrow.file_name, &(*full_command).back_arrow.size);
             }
             (*full_command).back_arrow.file_name[(*full_command).back_arrow.length] = (char *)malloc(temp_size * sizeof(char *));
             while ((c != ' ' && c != '\n' && c != '\t' && c != '\r' && c != '&' && c != '|')) {
@@ -203,17 +203,18 @@ int GetNewCommandWord(CPipe *full_command, int *length, int *last_amp) { // До
                 back_sl = 0;
                 continue;
             }
-            if ((c == '\n') && (*last_amp == 1)) {
+            /*if ((c == '\n') && (*last_amp == 1)) {
                 c = -1;
             }
             else {
                 (*last_amp) = 0;
-            }
+            }*/
             break;
         }
     } while(1);
 
     if (j != 0) { // Окончание строки, появилось новое слово длины j
+        (*full_command).not_blank = 1;
         command[*length][j] = '\0';
         arg_length[*length] = j;
         (*length)++;
@@ -222,56 +223,61 @@ int GetNewCommandWord(CPipe *full_command, int *length, int *last_amp) { // До
     return c;
 }
 
-void GetNewCommand(CPipe *full_command, int *exit_symbol, int *last_amp) {
+void GetNewCommand(CBack *full_command, int *exit_symbol) {
     int comm_size = 16;
-    CInf *background_comms = (*full_command).comm_pipes[(*full_command).length].background_comms;
-    int len = (*full_command).comm_pipes[(*full_command).length].length;
-    background_comms[len].command = (char **)malloc(comm_size * sizeof(char *));
-    background_comms[len].arg_length = (int *)malloc(comm_size * sizeof(int));
-    background_comms[len].ampersand = 0;
+    CInf *pipe_comms = (*full_command).background_pipes[(*full_command).length].pipe_comms;
+    int len = (*full_command).background_pipes[(*full_command).length].length;
+    pipe_comms[len].command = (char **)malloc(comm_size * sizeof(char *));
+    pipe_comms[len].arg_length = (int *)malloc(comm_size * sizeof(int));
+    pipe_comms[len].vert_slash = 0;
     int comm_length = 0;
     while(1) { // Последний прочитанный мог быть пробелом, тогда получаем еще слова
-        *exit_symbol = GetNewCommandWord(full_command, &comm_length, last_amp);
+        *exit_symbol = GetNewCommandWord(full_command, &comm_length);
         if ((*exit_symbol == '\n') || (*exit_symbol == '&') || (*exit_symbol == 1) || (*exit_symbol == -1) || (*exit_symbol == '|')) {
             break;
         }
         
         if (comm_length == comm_size) {
-            GiveMoreTwoDimSpace(&background_comms[len].command, &comm_size);
+            GiveMoreTwoDimSpace(&pipe_comms[len].command, &comm_size);
         }
     }
 
     
     if (comm_length == comm_size) {
-        GiveMoreTwoDimSpace(&background_comms[len].command, &comm_size);
+        GiveMoreTwoDimSpace(&pipe_comms[len].command, &comm_size);
     }
 
-    background_comms[len].command[comm_length] = (char*)malloc(10 * sizeof(char)); // Маркер завершения команды
-    background_comms[len].command[comm_length] = NULL;                                    // для execvp
+    pipe_comms[len].command[comm_length] = (char*)malloc(10 * sizeof(char)); // Маркер завершения команды
+    pipe_comms[len].command[comm_length] = NULL;                                    // для execvp
 
-    background_comms[len].comm_length = comm_length;
+    pipe_comms[len].comm_length = comm_length;
 }
 
-void GetNewString(CPipe *full_command, int *exit_symbol, int *conv_end) {
+void GetNewString(CBack *full_command, int *exit_symbol, int *last_amp) {
     int size = 16;
-    Comms *comms_pipe = (*full_command).comm_pipes;
-    int pipe_length = (*full_command).length;
-    comms_pipe[pipe_length].background_comms = (CInf *)malloc(size * sizeof(CInf));
-    comms_pipe[pipe_length].length = 0;
-    int last_amp = 0;
-    while((*exit_symbol != '\n') && (*exit_symbol != '|')) {
+    CPipe *background_pipes = (*full_command).background_pipes;
+    int background_length = (*full_command).length;
+    background_pipes[background_length].pipe_comms = (CInf *)malloc(size * sizeof(CInf));
+    background_pipes[background_length].length = 0;
+    int conv_end = 0;
+    while(1) {
 
-        if (comms_pipe[pipe_length].length == size) {
-            GiveMore3DimSpace(&comms_pipe[pipe_length].background_comms, &size);
+        if (((*exit_symbol == '\n') && (!conv_end)) || (*exit_symbol == '&')) {
+            break;
         }
 
-        int len = comms_pipe[pipe_length].length;
+        if (background_pipes[background_length].length == size) {
+            GiveMore3DimSpace(&background_pipes[background_length].pipe_comms, &size);
+        }
 
-        GetNewCommand(full_command, exit_symbol, &last_amp);
+        int len = background_pipes[background_length].length;
+
+        GetNewCommand(full_command, exit_symbol);
 
 
-        if (comms_pipe[pipe_length].background_comms[len].comm_length != 0) {
-            *conv_end = 0;
+        if (background_pipes[background_length].pipe_comms[len].comm_length != 0) {
+            conv_end = 0;
+            *last_amp = 0;
         }
 
         /*if (exit_symbol == 1) {
@@ -279,24 +285,29 @@ void GetNewString(CPipe *full_command, int *exit_symbol, int *conv_end) {
             break;
         }*/
 
-        if (*exit_symbol == -1) {
+        /*if (*exit_symbol == -1) {
             break;
-        }
+        }*/
         
-        comms_pipe[pipe_length].length++;
+        background_pipes[background_length].length++;
 
-        if (*exit_symbol == '&') {
-            last_amp = 1;
+        if (*exit_symbol == '|') {
+            conv_end = 1;
+            if (!(*full_command).last_is_pipeline) {
+                (*full_command).last_is_pipeline = 1;
+            }
         }
     }
 }
 
-CPipe GetNewCommPipe() {
-    CPipe full_command;
+CBack GetNewCommPipe() {
+    CBack full_command;
     int size = 16;
-    full_command.comm_pipes = (Comms *)malloc(size * sizeof(Comms));
+    full_command.background_pipes = (CPipe *)malloc(size * sizeof(CPipe));
+    full_command.not_blank = 0;
     full_command.length = 0;
-    full_command.is_pipeline = 0;
+    full_command.last_is_pipeline = 0;
+    full_command.last_is_background = 0;
     full_command.double_arrow.size = 16;
     full_command.back_arrow.size = 16;
     full_command.arrow.size = 16;
@@ -307,31 +318,30 @@ CPipe GetNewCommPipe() {
     full_command.arrow.file_name = (char **)malloc(full_command.arrow.size * sizeof(char *));
     full_command.back_arrow.file_name = (char **)malloc(full_command.back_arrow.size * sizeof(char *));
     int exit_symbol = '\0';
-    int conv_end = 0;
-    while(1) {
-        if ((exit_symbol == '\n') && (!conv_end)) {
-            break;
-        }
+    int last_amp = 0;
+    while(exit_symbol != '\n') {
         if (full_command.length == size) {
-            GiveMore4DimSpace(&full_command.comm_pipes, &size);
+            GiveMore4DimSpace(&full_command.background_pipes, &size);
         }
         exit_symbol = '\0';
-        GetNewString(&full_command, &exit_symbol, &conv_end);
+        GetNewString(&full_command, &exit_symbol, &last_amp);
 
         if (exit_symbol == -1) {
             full_command.length++;
             break;
         }
 
-        if (exit_symbol == '|') {
-            conv_end = 1;
-            if (!full_command.is_pipeline) {
-                full_command.is_pipeline = 1;
-            }
+        if (exit_symbol == '&') {
+            full_command.last_is_pipeline = 0;
+            last_amp = 1;
         }
-        
-        if (!((exit_symbol == '\n') && (conv_end))) {
+
+        if (!((exit_symbol == '\n') && (last_amp))) {
             full_command.length++;
+        }
+
+        else {
+            full_command.last_is_background = 1;
         }
     }
 

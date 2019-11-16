@@ -51,16 +51,16 @@ void GiveMore3DimSpace (CInf **small, int *data_volume) { // Выделяет в
     *small = big;
 }
 
-void Copy4Dim(Comms *small, Comms *big, int data_volume) { // Копирует двумерный массив из одной области память в другую двумерный массив
+void Copy4Dim(CPipe *small, CPipe *big, int data_volume) { // Копирует двумерный массив из одной области память в другую двумерный массив
     for(int i = 0; i < data_volume; i++) {
         big[i] = small[i];
     }
 }
 
-void GiveMore4DimSpace (Comms **small, int *data_volume) { // Выделяет в два раза больше места под массив строк
+void GiveMore4DimSpace (CPipe **small, int *data_volume) { // Выделяет в два раза больше места под массив строк
     int temp = *data_volume;
     *data_volume *= 2;
-    Comms *big = (Comms *)malloc(*data_volume * sizeof(Comms));
+    CPipe *big = (CPipe *)malloc(*data_volume * sizeof(CPipe));
     Copy4Dim(*small, big, temp);
     free(*small);
     *small = big;
