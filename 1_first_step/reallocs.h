@@ -26,7 +26,6 @@ typedef struct BackgroundComm{
     int not_blank;
     int last_is_pipeline;
     int last_is_background;
-    int ampersand;
     Arrs double_arrow;
     Arrs arrow;
     Arrs back_arrow;

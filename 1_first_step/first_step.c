@@ -259,10 +259,14 @@ void GetNewString(CBack *full_command, int *exit_symbol, int *last_amp) {
     int background_length = (*full_command).length;
     background_pipes[background_length].pipe_comms = (CInf *)malloc(size * sizeof(CInf));
     background_pipes[background_length].length = 0;
+    background_pipes[background_length].ampersand = 0;
     int conv_end = 0;
     while(1) {
 
         if (((*exit_symbol == '\n') && (!conv_end)) || (*exit_symbol == '&')) {
+            if (*exit_symbol == '&') {
+                background_pipes[background_length].ampersand = 1;
+            }
             break;
         }
 

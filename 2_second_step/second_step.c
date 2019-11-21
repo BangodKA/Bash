@@ -6,14 +6,14 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-int DetectExit(char *command) { // Обнаруживает exit
+/*int DetectExit(char *command) { // Обнаруживает exit
     if (command != NULL) {
         if (strcmp(command, "exit") == 0) {
             return 1;
         }
     }
     return 0;
-}
+}*/
 
 void GoHome() {
     char *tempHome = NULL;
@@ -60,7 +60,7 @@ const char * const NeedTwiddle(int start_point, const char * const nothing, cons
     }
 }
 
-void ProcessCommand(char **command, int ampersand, int *amp_amount) { // Выполнение команды API
+void ProcessCommand(char **command, int where, int from, int wait_last) { // Выполнение команды API
     //printf("%s, %d", command[0], ampersand);
     pid_t child;
     child = fork();
@@ -68,7 +68,11 @@ void ProcessCommand(char **command, int ampersand, int *amp_amount) { // Вып�
         printf("%s\n", "Something went wrong");
     }
     else if (child == 0) {
-        if (DetectExit(command[0])) {
+        dup2(from, 0);
+        dup2(where, 1);
+        close(from);
+        close(where);
+        if (!strcmp(command[0], "exit")) {
             exit(EXIT_SUCCESS);
         }
         if (!strcmp(command[0], "cd")) {
@@ -79,14 +83,9 @@ void ProcessCommand(char **command, int ampersand, int *amp_amount) { // Вып�
         exit(EXIT_FAILURE);
     }
     else {
-        if (!ampersand) {
+        if (wait_last) {
+            //printf("%s", command[0]);
             waitpid(child, NULL, WUNTRACED);
-        }
-        else {
-            (*amp_amount)++;
-            printf("%s", command[0]);
-            printf("[%d] %d\n", *amp_amount, child);
-            usleep(5000);
         }
     }
 }

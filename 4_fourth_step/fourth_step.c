@@ -12,7 +12,7 @@
 
 #include "../0_general/general.h"
 
-void AppendWrite(Arrs double_arrow) {
+int AppendWrite(Arrs double_arrow) {
     int open_res = 0;
     for (int v = 0; v < double_arrow.length - 1; v++) {
         open_res = open(double_arrow.file_name[v], O_WRONLY | O_APPEND | O_CREAT, S_IRWXU);
@@ -20,9 +20,10 @@ void AppendWrite(Arrs double_arrow) {
             close(open_res);
         }
     }
+    return open(double_arrow.file_name[double_arrow.length - 1], O_WRONLY | O_APPEND | O_CREAT, S_IRWXU);
 }
 
-void TruncWrite(Arrs arrow) {
+int TruncWrite(Arrs arrow) {
     int open_res = 0;
     for (int v = 0; v < arrow.length - 1; v++) {
         open_res = open(arrow.file_name[v], O_WRONLY | O_TRUNC | O_CREAT, S_IRWXU);
@@ -30,6 +31,7 @@ void TruncWrite(Arrs arrow) {
             close(open_res);
         }
     }
+    return open_res = open(arrow.file_name[arrow.length - 1], O_WRONLY | O_TRUNC | O_CREAT, S_IRWXU);
 }
 
 int Read(Arrs back_arrow) {
