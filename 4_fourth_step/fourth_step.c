@@ -31,22 +31,26 @@ int TruncWrite(Arrs arrow) {
             close(open_res);
         }
     }
-    return open_res = open(arrow.file_name[arrow.length - 1], O_WRONLY | O_TRUNC | O_CREAT, S_IRWXU);
+    return open(arrow.file_name[arrow.length - 1], O_WRONLY | O_TRUNC | O_CREAT, S_IRWXU);
 }
 
 int Read(Arrs back_arrow) {
     int open_res = 0;
     for (int v = 0; v < back_arrow.length - 1; v++) {
         open_res = open(back_arrow.file_name[v], O_RDONLY, S_IRWXU);
-        printf("%d", open_res);
         if (open_res != -1) {
             close(open_res);
         }
         else {
             printf("bash: %s: Нет такого файла или каталога", back_arrow.file_name[v]);
-            return 0;
+            return -1;
         }
     }
-    return 1;
+    if (back_arrow.length == 0) {
+        return 0;
+    }
+    else {
+        return open(back_arrow.file_name[back_arrow.length - 1], O_RDONLY, S_IRWXU);
+    }
 }
 

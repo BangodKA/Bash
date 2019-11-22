@@ -130,7 +130,7 @@ int GetFileName(int c, CBack *full_command) {
             }
             else {
                 (*full_command).which_arrow_last = 1;
-                while ((c == ' ') || (c == '\t')) {
+                while ((c == ' ') || (c == '\t')) {//Лохундрий
                     c = getchar();
                 }
                 int temp_size = 16;

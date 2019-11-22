@@ -108,11 +108,29 @@ int main ()
 
             //printf("%d, %d; \n", full_command.last_is_background, full_command.last_is_pipeline);
 
-            if (!Read(full_command.arrows[0])) {
+            int fd_in = -1;
+            int fd_out = -1;
+
+            if ((fd_out = Read(full_command.arrows[0])) == -1) {
+                printf("No such file\n"); 
                 break;
             }
-            TruncWrite(full_command.arrows[1]);
-            AppendWrite(full_command.arrows[2]);
+            if (full_command.which_arrow_last == 1) {
+                fd_in = TruncWrite(full_command.arrows[1]);
+                close(AppendWrite(full_command.arrows[2]));
+            }
+            else if(full_command.which_arrow_last == 2) {
+                fd_in = AppendWrite(full_command.arrows[2]);
+                close(TruncWrite(full_command.arrows[1]));
+            }
+
+            if (fd_in == -1) {
+                fd_in = dup(1);
+            }
+
+            if (fd_out == 0) {
+                fd_out = dup(0);
+            }
 
             if ((!full_command.last_is_pipeline) && (!full_command.last_is_background)) {
                 if (!strcmp(last_command_inf.command[0], "exit")) {
@@ -160,7 +178,7 @@ int main ()
                 if (eldest_daughter == 0) {
                     int pipeline[full_command.background_pipes[i].length][2];
                     pipe(pipeline[0]);
-                    pipeline[0][0] = dup(0);
+                    pipeline[0][0] = dup(fd_out);
                     //close(pipeline[0][1]);
                     int last_command_in_pipeline = 0;
                     for (int k = 0; k < full_command.background_pipes[i].length; k++) {
@@ -168,7 +186,10 @@ int main ()
                         pipe(pipeline[k + 1]);
                         if (k == full_command.background_pipes[i].length - 1) {
                             //printf("sfgdf %s\n", full_command.arrow.file_name[full_command.arrow.length - 1]);
-                            pipeline[k + 1][1] = dup(1);
+                            pipeline[k + 1][1] = dup(fd_in);
+                            if (fd_in != 1) {
+                                close(fd_in);
+                            }
                             close(pipeline[k + 1][0]);
                             last_command_in_pipeline = 1;
                         }
