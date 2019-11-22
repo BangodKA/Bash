@@ -1,0 +1,1 @@
+gcc -Wall int.c -o int 0_general/general.c 1_first_step/reallocs.c 1_first_step/command_prompt.c 1_first_step/get_command.c 2_second_step/process_command.c 2_second_step/cd_command.c 4_fourth_step/open_create_files.c && ./int

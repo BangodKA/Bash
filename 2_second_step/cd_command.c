@@ -2,18 +2,6 @@
 #include <stdlib.h> // Для определения домашней директории
 #include <string.h>
 #include <unistd.h>
-#include <errno.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-
-/*int DetectExit(char *command) { // Обнаруживает exit
-    if (command != NULL) {
-        if (strcmp(command, "exit") == 0) {
-            return 1;
-        }
-    }
-    return 0;
-}*/
 
 void GoHome() {
     char *tempHome = NULL;
@@ -57,35 +45,5 @@ const char * const NeedTwiddle(int start_point, const char * const nothing, cons
     }
     else {
         return twiddle;
-    }
-}
-
-void ProcessCommand(char **command, int where, int from, int wait_last) { // Выполнение команды API
-    //printf("%s, %d", command[0], ampersand);
-    pid_t child;
-    child = fork();
-    if (child  < 0) {
-        printf("%s\n", "Something went wrong");
-    }
-    else if (child == 0) {
-        dup2(from, 0);
-        dup2(where, 1);
-        close(from);
-        close(where);
-        if (!strcmp(command[0], "exit")) {
-            exit(EXIT_SUCCESS);
-        }
-        if (!strcmp(command[0], "cd")) {
-            exit(EXIT_SUCCESS);
-        }
-        execvp(command[0], command);
-        printf("%s: команда не найдена\n", command[0]);
-        exit(EXIT_FAILURE);
-    }
-    else {
-        if (wait_last) {
-            //printf("%s", command[0]);
-            waitpid(child, NULL, WUNTRACED);
-        }
     }
 }

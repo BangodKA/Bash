@@ -53,4 +53,3 @@ int Read(Arrs back_arrow) {
         return open(back_arrow.file_name[back_arrow.length - 1], O_RDONLY, S_IRWXU);
     }
 }
-
