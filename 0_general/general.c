@@ -34,9 +34,11 @@ typedef struct BackgroundComm{
     int not_blank;
     int last_is_pipeline;
     int last_is_background;
-    Arrs double_arrow;
+    /*Arrs* double_arrow;
     Arrs arrow;
-    Arrs back_arrow;
+    Arrs back_arrow;*/
+    Arrs arrows[3];
+    int which_arrow_last;
 }CBack;
 
 void FreeHeap(CPipe *background_pipes, int length) { // Освобождает от команды

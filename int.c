@@ -108,11 +108,11 @@ int main ()
 
             //printf("%d, %d; \n", full_command.last_is_background, full_command.last_is_pipeline);
 
-           /* if (!Read(full_command.back_arrow)) {
+            if (!Read(full_command.arrows[0])) {
                 break;
             }
-            TruncWrite(full_command.arrow);
-            AppendWrite(full_command.double_arrow);*/
+            TruncWrite(full_command.arrows[1]);
+            AppendWrite(full_command.arrows[2]);
 
             if ((!full_command.last_is_pipeline) && (!full_command.last_is_background)) {
                 if (!strcmp(last_command_inf.command[0], "exit")) {

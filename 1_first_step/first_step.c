@@ -83,6 +83,78 @@ int GetNewSymbol(int *back_sl, int *quote, int *double_quote, int *vert_slash) {
     return c;
 }
 
+int GetFileName(int c, CBack *full_command) {
+
+    if (c == 0) {
+        while (((c = getchar()) == ' ') || c == '\t');
+        int temp_size = 16;
+        int i = 0;
+        if ((*full_command).arrows[0].length == (*full_command).arrows[0].size) {
+            GiveMoreTwoDimSpace(&(*full_command).arrows[0].file_name, &(*full_command).arrows[0].size);
+        }
+        (*full_command).arrows[0].file_name[(*full_command).arrows[0].length] = (char *)malloc(temp_size * sizeof(char *));
+        while ((c != ' ' && c != '\n' && c != '\t' && c != '\r' && c != '&' && c != '|')) {
+            (*full_command).arrows[0].file_name[(*full_command).arrows[0].length][i] = c;
+            i++;
+            if (i == temp_size) {
+                GiveMoreSpace(&(*full_command).arrows[0].file_name[(*full_command).arrows[0].length], &temp_size);
+            }
+            c = getchar();
+        }
+        (*full_command).arrows[0].file_name[(*full_command).arrows[0].length][i] = '\0';
+        (*full_command).arrows[0].length += 1;
+        printf("%d\n", (*full_command).arrows[0].length);
+    }
+
+    if (c == 2) {
+            c = getchar();
+            if (c == '>') {
+                (*full_command).which_arrow_last = 2;
+                while (((c = getchar()) == ' ') || c == '\t');
+                int temp_size = 16;
+                int i = 0;
+                if ((*full_command).arrows[2].length == (*full_command).arrows[2].size) {
+                    GiveMoreTwoDimSpace(&(*full_command).arrows[2].file_name, &(*full_command).arrows[2].size);
+                }
+                (*full_command).arrows[2].file_name[(*full_command).arrows[2].length] = (char *)malloc(temp_size * sizeof(char *));
+                while ((c != ' ' && c != '\n' && c != '\t' && c != '\r' && c != '&' && c != '|')) {
+                    (*full_command).arrows[2].file_name[(*full_command).arrows[2].length][i] = c;
+                    i++;
+                    if (i == temp_size) {
+                        GiveMoreSpace(&(*full_command).arrows[2].file_name[(*full_command).arrows[2].length], &temp_size);
+                    }
+                    c = getchar();
+                }
+                (*full_command).arrows[2].file_name[(*full_command).arrows[2].length][i] = '\0';
+                (*full_command).arrows[2].length += 1;
+            }
+            else {
+                (*full_command).which_arrow_last = 1;
+                while ((c == ' ') || (c == '\t')) {
+                    c = getchar();
+                }
+                int temp_size = 16;
+                int i = 0;
+                if ((*full_command).arrows[1].length == (*full_command).arrows[1].size) {
+                    GiveMoreTwoDimSpace(&(*full_command).arrows[1].file_name, &(*full_command).arrows[1].size);
+                }
+                (*full_command).arrows[1].file_name[(*full_command).arrows[1].length] = (char *)malloc(temp_size * sizeof(char *));
+                while ((c != ' ' && c != '\n' && c != '\t' && c != '\r' && c != '&' && c != '|')) {
+                    (*full_command).arrows[1].file_name[(*full_command).arrows[1].length][i] = c;
+                    i++;
+                    if (i == temp_size) {
+                        GiveMoreSpace(&(*full_command).arrows[1].file_name[(*full_command).arrows[1].length], &temp_size);
+                    }
+                    c = getchar();
+                }
+                (*full_command).arrows[1].file_name[(*full_command).arrows[1].length][i] = '\0';
+                (*full_command).arrows[1].length += 1;
+            }
+        }
+
+    return c;
+}
+
 int GetNewCommandWord(CBack *full_command, int *length) { // Добавляет в массив команды новое слово, возвращая последний символ
     int c;
     CInf *pipe_comms = (*full_command).background_pipes[(*full_command).length].pipe_comms;
@@ -120,70 +192,8 @@ int GetNewCommandWord(CBack *full_command, int *length) { // Добавляет 
             }
             
         }
-        if (c == 0) {
-            while (((c = getchar()) == ' ') || c == '\t');
-            int temp_size = 16;
-            int i = 0;
-            if ((*full_command).back_arrow.length == (*full_command).back_arrow.size) {
-                GiveMoreTwoDimSpace(&(*full_command).back_arrow.file_name, &(*full_command).back_arrow.size);
-            }
-            (*full_command).back_arrow.file_name[(*full_command).back_arrow.length] = (char *)malloc(temp_size * sizeof(char *));
-            while ((c != ' ' && c != '\n' && c != '\t' && c != '\r' && c != '&' && c != '|')) {
-                (*full_command).back_arrow.file_name[(*full_command).back_arrow.length][i] = c;
-                i++;
-                if (i == temp_size) {
-                    GiveMoreSpace(&(*full_command).back_arrow.file_name[(*full_command).back_arrow.length], &temp_size);
-                }
-                c = getchar();
-            }
-            (*full_command).back_arrow.file_name[(*full_command).back_arrow.length][i] = '\0';
-            (*full_command).back_arrow.length += 1;
-            printf("%d\n", (*full_command).back_arrow.length);
-        }
 
-        if (c == 2) {
-            c = getchar();
-            if (c == '>') {
-                while (((c = getchar()) == ' ') || c == '\t');
-                int temp_size = 16;
-                int i = 0;
-                if ((*full_command).double_arrow.length == (*full_command).double_arrow.size) {
-                    GiveMoreTwoDimSpace(&(*full_command).double_arrow.file_name, &(*full_command).double_arrow.size);
-                }
-                (*full_command).double_arrow.file_name[(*full_command).double_arrow.length] = (char *)malloc(temp_size * sizeof(char *));
-                while ((c != ' ' && c != '\n' && c != '\t' && c != '\r' && c != '&' && c != '|')) {
-                    (*full_command).double_arrow.file_name[(*full_command).double_arrow.length][i] = c;
-                    i++;
-                    if (i == temp_size) {
-                        GiveMoreSpace(&(*full_command).double_arrow.file_name[(*full_command).double_arrow.length], &temp_size);
-                    }
-                    c = getchar();
-                }
-                (*full_command).double_arrow.file_name[(*full_command).double_arrow.length][i] = '\0';
-                (*full_command).double_arrow.length += 1;
-            }
-            else {
-                while ((c == ' ') || (c == '\t')) {
-                    c = getchar();
-                }
-                int temp_size = 16;
-                int i = 0;
-                if ((*full_command).arrow.length == (*full_command).arrow.size) {
-                    GiveMoreTwoDimSpace(&(*full_command).arrow.file_name, &(*full_command).arrow.size);
-                }
-                (*full_command).arrow.file_name[(*full_command).arrow.length] = (char *)malloc(temp_size * sizeof(char *));
-                while ((c != ' ' && c != '\n' && c != '\t' && c != '\r' && c != '&' && c != '|')) {
-                    (*full_command).arrow.file_name[(*full_command).arrow.length][i] = c;
-                    i++;
-                    if (i == temp_size) {
-                        GiveMoreSpace(&(*full_command).arrow.file_name[(*full_command).arrow.length], &temp_size);
-                    }
-                    c = getchar();
-                }
-                (*full_command).arrow.file_name[(*full_command).arrow.length][i] = '\0';
-                (*full_command).arrow.length += 1;
-            }
-        }
+        c = GetFileName(c, full_command);
 
         /*if (c == 1) {
             return 1;
@@ -312,15 +322,16 @@ CBack GetNewCommPipe() {
     full_command.length = 0;
     full_command.last_is_pipeline = 0;
     full_command.last_is_background = 0;
-    full_command.double_arrow.size = 16;
-    full_command.back_arrow.size = 16;
-    full_command.arrow.size = 16;
-    full_command.double_arrow.length = 0;
-    full_command.back_arrow.length = 0;
-    full_command.arrow.length = 0;
-    full_command.double_arrow.file_name = (char **)malloc(full_command.double_arrow.size * sizeof(char *));
-    full_command.arrow.file_name = (char **)malloc(full_command.arrow.size * sizeof(char *));
-    full_command.back_arrow.file_name = (char **)malloc(full_command.back_arrow.size * sizeof(char *));
+    full_command.which_arrow_last = -1;
+    full_command.arrows[0].size = 16;
+    full_command.arrows[1].size = 16;
+    full_command.arrows[2].size = 16;
+    full_command.arrows[0].length = 0;
+    full_command.arrows[1].length = 0;
+    full_command.arrows[2].length = 0;
+    full_command.arrows[0].file_name = (char **)malloc(full_command.arrows[0].size * sizeof(char *));
+    full_command.arrows[1].file_name = (char **)malloc(full_command.arrows[1].size * sizeof(char *));
+    full_command.arrows[2].file_name = (char **)malloc(full_command.arrows[2].size * sizeof(char *));
     int exit_symbol = '\0';
     int last_amp = 0;
     while(exit_symbol != '\n') {
