@@ -1,9 +1,4 @@
-#define _GNU_SOURCE
-#include <limits.h> // длины пути, хоста и имени пользователя
-#include <stdio.h> 
 #include <stdlib.h> // Для определения домашней директории
-#include <string.h>
-#include <unistd.h>
 #include "../0_general/general.h"
 
 void Copy(const char *small, char *big, int data_volume) { // Копирует из одной области память в другую

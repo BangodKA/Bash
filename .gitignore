@@ -56,7 +56,6 @@ NoNeed
 int
 test.c 
 .vscode
-Run
 test
 not_working
 test_output.txt

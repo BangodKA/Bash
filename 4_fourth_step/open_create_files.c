@@ -1,12 +1,5 @@
-#define _GNU_SOURCE // Для использования констант максимальных значений 
-#include <limits.h> // длины пути, хоста и имени пользователя
 #include <unistd.h> // Для использования команд bash
 #include <stdio.h> 
-#include <stdlib.h> // Для определения домашней директории
-#include <errno.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <string.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 

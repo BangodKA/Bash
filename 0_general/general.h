@@ -33,4 +33,6 @@ typedef struct BackgroundComm{
     Arrs back_arrow;*/
 }CBack;
 
+int WaitBackgroundZombies(int *amp_amount);
+
 void FreeHeap(CPipe *background_pipes, int length);

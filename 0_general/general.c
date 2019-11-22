@@ -1,10 +1,5 @@
-#define _GNU_SOURCE // Для использования констант максимальных значений 
-#include <limits.h> // длины пути, хоста и имени пользователя
-#include <unistd.h> // Для использования команд bash
 #include <stdio.h> 
 #include <stdlib.h> // Для определения домашней директории
-#include <errno.h>
-#include <sys/types.h>
 #include <sys/wait.h>
 #include <string.h>
 
@@ -40,6 +35,26 @@ typedef struct BackgroundComm{
     Arrs arrows[3];
     int which_arrow_last;
 }CBack;
+
+void WaitBackgroundZombies(int *amp_amount) {
+    int child;
+    child = waitpid(-1, NULL, WNOHANG);
+    while (child > 0) {
+        printf("[%d]+ Завершён %d        \n", *amp_amount, child);
+        /*for (int k = 0; k < full_command.background_pipes[i].length; k++) {
+            for (int s = 0; s < full_command.background_pipes[i].pipe_comms[k].comm_length; s++) {
+                printf("%s ", full_command.background_pipes[i].pipe_comms[k].command[s]);
+            }
+            printf("| ");
+        }
+        printf("\n");    */
+        (*amp_amount)--;
+        child = waitpid(-1, NULL, WNOHANG);
+        /*for (int j = 0; j < full_command.commands[k].comm_length; j++) {
+            printf("%s ", full_command.commands[k].command[j]);
+        }*/
+    }
+}
 
 void FreeHeap(CPipe *background_pipes, int length) { // Освобождает от команды
     for (int j = 0; j < length; j++) {

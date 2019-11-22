@@ -18,8 +18,10 @@
 #include <fcntl.h>
 
 #include "0_general/general.h"
-#include "1_first_step/first_step.h"
-#include "2_second_step/second_step.h"
+#include "1_first_step/command_prompt.h"
+#include "1_first_step/get_command.h"
+#include "2_second_step/cd_command.h"
+#include "2_second_step/process_command.h"
 #include "4_fourth_step/open_create_files.h"
 
 
@@ -50,28 +52,11 @@ int main()
 
     while(1) {
         
-        int child;
-        child = waitpid(-1, NULL, WNOHANG);
-        int i = 0;
-        while (child > 0) {
-            printf("[%d]+ Завершён %d        \n", amp_amount, child);
-            /*for (int k = 0; k < full_command.background_pipes[i].length; k++) {
-                for (int s = 0; s < full_command.background_pipes[i].pipe_comms[k].comm_length; s++) {
-                    printf("%s ", full_command.background_pipes[i].pipe_comms[k].command[s]);
-                }
-                printf("| ");
-            }
-            printf("\n");    */
-            amp_amount--;
-            child = waitpid(-1, NULL, WNOHANG);
-            /*for (int j = 0; j < full_command.commands[k].comm_length; j++) {
-                printf("%s ", full_command.commands[k].command[j]);
-            }*/
-            i = 1;
-        }
-        if (i == 1) {
+        /*if (WaitBackgroundZombies(&amp_amount) == 1) {
             continue;
-        }
+        }*/
+        WaitBackgroundZombies(&amp_amount);
+
         printf ("%s%s@%s%s:%s%s%s%s$ ", PINK, userName, hostName, RESET, YELLOW, invitation, &dirName[start_point], RESET);
 
         full_command = GetNewCommPipe();
