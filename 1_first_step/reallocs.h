@@ -2,10 +2,7 @@
 
 typedef struct CommInf{
     char **command;
-    int size;
-    int comm_length;
-    int *arg_length;
-    int vert_slash;
+    int length;
 }CInf;
 
 typedef struct CommandPipe{

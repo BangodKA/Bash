@@ -4,7 +4,7 @@
 
 #include "reallocs.h"
 
-int GetNewSymbol(int *back_sl, int *quote, int *double_quote, int *vert_slash) {
+int GetNewSymbol(int *back_sl, int *quote, int *double_quote) {
     int c = getchar();
     if (c == '\\') {
         if (*back_sl == 1) {
@@ -31,7 +31,6 @@ int GetNewSymbol(int *back_sl, int *quote, int *double_quote, int *vert_slash) {
             while(getchar() != '\n'); // cчитываем лишний ввод
             return 1;
         }*/
-        *vert_slash = 1;
     }
 
     if (c == '<') {
@@ -121,11 +120,8 @@ int GetNewCommandWord(CBack *full_command, int *length) { // Добавляет 
     CInf *pipe_comms = (*full_command).background_pipes[(*full_command).length].pipe_comms;
     int len = (*full_command).background_pipes[(*full_command).length].length;
     char **command = pipe_comms[len].command;
-    int *arg_length = pipe_comms[len].arg_length;
-    int *pipeline = &pipe_comms[len].vert_slash;
     int word_size = 16;
     command[*length] = (char*)malloc(word_size * sizeof(char));
-    arg_length[*length] = 0;
     int j = 0;
     int back_sl = 0;
     int double_quote = 0;
@@ -135,7 +131,7 @@ int GetNewCommandWord(CBack *full_command, int *length) { // Добавляет 
             GiveMoreSpace(&command[*length], &word_size);
         }
 
-        c = GetNewSymbol(&back_sl, &qoute, &double_quote, pipeline);
+        c = GetNewSymbol(&back_sl, &qoute, &double_quote);
 
         
 
@@ -187,7 +183,6 @@ int GetNewCommandWord(CBack *full_command, int *length) { // Добавляет 
     if (j != 0) { // Окончание строки, появилось новое слово длины j
         (*full_command).not_blank = 1;
         command[*length][j] = '\0';
-        arg_length[*length] = j;
         (*length)++;
     }
 
@@ -199,8 +194,6 @@ void GetNewCommand(CBack *full_command, int *exit_symbol) {
     CInf *pipe_comms = (*full_command).background_pipes[(*full_command).length].pipe_comms;
     int len = (*full_command).background_pipes[(*full_command).length].length;
     pipe_comms[len].command = (char **)malloc(comm_size * sizeof(char *));
-    pipe_comms[len].arg_length = (int *)malloc(comm_size * sizeof(int));
-    pipe_comms[len].vert_slash = 0;
     int comm_length = 0;
     while(1) { // Последний прочитанный мог быть пробелом, тогда получаем еще слова
         *exit_symbol = GetNewCommandWord(full_command, &comm_length);
@@ -221,7 +214,7 @@ void GetNewCommand(CBack *full_command, int *exit_symbol) {
     pipe_comms[len].command[comm_length] = (char*)malloc(10 * sizeof(char)); // Маркер завершения команды
     pipe_comms[len].command[comm_length] = NULL;                                    // для execvp
 
-    pipe_comms[len].comm_length = comm_length;
+    pipe_comms[len].length = comm_length;
 }
 
 void GetNewString(CBack *full_command, int *exit_symbol, int *last_amp) {
@@ -241,6 +234,10 @@ void GetNewString(CBack *full_command, int *exit_symbol, int *last_amp) {
             break;
         }
 
+        if ((*exit_symbol == '\n') && (conv_end)) {
+            background_pipes[background_length].length--;
+        }
+
         if (background_pipes[background_length].length == size) {
             GiveMore3DimSpace(&background_pipes[background_length].pipe_comms, &size);
         }
@@ -250,7 +247,7 @@ void GetNewString(CBack *full_command, int *exit_symbol, int *last_amp) {
         GetNewCommand(full_command, exit_symbol);
 
 
-        if (background_pipes[background_length].pipe_comms[len].comm_length != 0) {
+        if (background_pipes[background_length].pipe_comms[len].length != 0) {
             conv_end = 0;
             *last_amp = 0;
         }

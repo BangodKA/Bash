@@ -5,17 +5,13 @@
 #define YELLOW "\033[33;1m"
 
 
-#define _GNU_SOURCE // Для использования констант максимальных значений 
-#include <limits.h> // длины пути, хоста и имени пользователя
-#include <unistd.h> // Для использования команд bash
+#define _GNU_SOURCE
+#include <limits.h>
+#include <unistd.h>
 #include <stdio.h> 
-#include <stdlib.h> // Для определения домашней директории
-#include <errno.h>
-#include <sys/types.h>
+#include <stdlib.h>
 #include <sys/wait.h>
 #include <string.h>
-#include <sys/stat.h>
-#include <fcntl.h>
 
 #include "0_general/general.h"
 #include "1_first_step/command_prompt.h"
@@ -27,12 +23,12 @@
 
 int main()
 {    
-    char *dirName = NULL; // Указатель на область, где будет храниться путь к текущей директории
-    int dir_length = 0; // Длина до рабочей директории
-    char *homeDir = NULL; // Указатель на область, где будет храниться домашняя директория
+    char *dirName = NULL;
+    int dir_length = 0;
+    char *homeDir = NULL; 
     int home_dir_length = 0;
-    char userName[LOGIN_NAME_MAX + 1]; // Указатель на область, где будет храниться имя пользователя
-    char hostName[HOST_NAME_MAX + 1]; // Массив, где будет храниться имя хоста
+    char userName[LOGIN_NAME_MAX + 1];
+    char hostName[HOST_NAME_MAX + 1];
 
     CBack full_command;
 
@@ -51,28 +47,15 @@ int main()
     int amp_amount = 0;
 
     while(1) {
-        
-        /*if (WaitBackgroundZombies(&amp_amount) == 1) {
-            continue;
-        }*/
         WaitBackgroundZombies(&amp_amount);
 
         printf ("%s%s@%s%s:%s%s%s%s$ ", PINK, userName, hostName, RESET, YELLOW, invitation, &dirName[start_point], RESET);
 
         full_command = GetNewCommPipe();
 
-        /*int len = full_command.background_pipes[0].length;
-
-        if (len == -1) {
-            printf("bash: синтаксическая ошибка рядом с неожиданным маркером «&»\n");
-            continue;
-        }*/
-
         if (full_command.not_blank) {
 
-            CInf last_command_inf = full_command.background_pipes[full_command.length - 1].pipe_comms[full_command.background_pipes[0].length - 1];
-
-            //printf("%d, %d; \n", full_command.last_is_background, full_command.last_is_pipeline);
+            CInf last_command_inf = full_command.background_pipes[full_command.length - 1].pipe_comms[full_command.background_pipes[full_command.length - 1].length - 1];
 
             int fd_in = -1;
             int fd_out = -1;
@@ -101,12 +84,12 @@ int main()
             if ((!full_command.last_is_pipeline) && (!full_command.last_is_background)) {
 
                 if (!strcmp(last_command_inf.command[0], "exit")) {
-                    FreeHeap(full_command.background_pipes, full_command.length);
+                    FreeHeap(full_command);
                     break;
                 }
 
                 if (!strcmp(last_command_inf.command[0], "cd")) {
-                    if (last_command_inf.comm_length > 2) {
+                    if (last_command_inf.length > 2) {
                         printf("bash: cd: слишком много аргументов\n");
                     }
                     else if(ChangeDir(last_command_inf.command)) {
@@ -157,17 +140,8 @@ int main()
                 }
             }
         }
-
-        /*for(int k = 0; k <= len; k++) {
-            for(int i = 0; i < full_command.commands[k].comm_length; i++) {
-                for(int j = 0; j < full_command.commands[k].arg_length[i]; j++) {
-                    printf("%c", full_command.commands[k].command[i][j]);
-                }
-            }
-            printf(" ");
-        }*/
-
-        FreeHeap(full_command.background_pipes, full_command.length); // Освобождаем место для новой команды
+        
+        FreeHeap(full_command); // Освобождаем место для новой команды
     }
 
     return 0;

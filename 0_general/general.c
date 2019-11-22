@@ -5,10 +5,7 @@
 
 typedef struct CommInf{
     char **command;
-    int size;
-    int comm_length;
-    int *arg_length;
-    int vert_slash;
+    int length;
 }CInf;
 
 typedef struct CommandPipe{
@@ -41,25 +38,15 @@ void WaitBackgroundZombies(int *amp_amount) {
     child = waitpid(-1, NULL, WNOHANG);
     while (child > 0) {
         printf("[%d]+ Завершён %d        \n", *amp_amount, child);
-        /*for (int k = 0; k < full_command.background_pipes[i].length; k++) {
-            for (int s = 0; s < full_command.background_pipes[i].pipe_comms[k].comm_length; s++) {
-                printf("%s ", full_command.background_pipes[i].pipe_comms[k].command[s]);
-            }
-            printf("| ");
-        }
-        printf("\n");    */
         (*amp_amount)--;
         child = waitpid(-1, NULL, WNOHANG);
-        /*for (int j = 0; j < full_command.commands[k].comm_length; j++) {
-            printf("%s ", full_command.commands[k].command[j]);
-        }*/
     }
 }
 
-void FreeHeap(CPipe *background_pipes, int length) { // Освобождает от команды
+void FreeCommand(CPipe *background_pipes, int length) {
     for (int j = 0; j < length; j++) {
         for (int k = 0; k < background_pipes[j].length; k++) {
-            for(int i = 0; i <= background_pipes[j].pipe_comms[k].comm_length; i++) {
+            for(int i = 0; i <= background_pipes[j].pipe_comms[k].length; i++) {
                 free(background_pipes[j].pipe_comms[k].command[i]);
             }
             free(background_pipes[j].pipe_comms[k].command);
@@ -67,4 +54,15 @@ void FreeHeap(CPipe *background_pipes, int length) { // Освобождает �
         free(background_pipes[j].pipe_comms);
     }
     free(background_pipes);
+}
+
+void FreeFiles(Arrs *arrows) {
+    for (int k = 0; k < 3; k++) {
+        free(arrows[k].file_name);
+    }
+}
+
+void FreeHeap(CBack full_command) { // Освобождает от команды
+    FreeCommand(full_command.background_pipes, full_command.length);
+    FreeFiles(full_command.arrows);   
 }
