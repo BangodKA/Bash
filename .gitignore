@@ -52,12 +52,8 @@ Mkfile.old
 dkms.conf
 
 
-NoNeed
 int
 test.c 
 .vscode
 test
 not_working
-test_output.txt
-tst_otp.txt
-terp.txt
