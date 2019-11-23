@@ -70,6 +70,9 @@ void RememberBackgroundZombie(CPipe *process_pipe, CPipe background_pipe) {
             (*process_pipe).pipe_comms[s].command[l] = (char *)malloc(word_size * sizeof(char));
             int j = 0;
             while (background_pipe.pipe_comms[s].command[l][j] != '\0') {
+                if (j == word_size) {
+                    GiveMoreSpace(&background_pipe.pipe_comms[s].command[l], &word_size);
+                }
                 (*process_pipe).pipe_comms[s].command[l][j] = background_pipe.pipe_comms[s].command[l][j];
                 j++;
             }
