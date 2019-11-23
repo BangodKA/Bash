@@ -1,11 +1,4 @@
-#define _GNU_SOURCE
-#include <limits.h>
 #include <unistd.h>
-#include <stdio.h> 
-#include <stdlib.h>
-#include <sys/wait.h>
-#include <string.h>
-#include <errno.h>
 
 #include "../0_general/structure.h"
 #include "../2_second_step/process_command.h"

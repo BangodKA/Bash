@@ -117,17 +117,17 @@ void CollectWholeFileName(Arrs *arrows, int *c, int *back_sl, int *qoute, int *d
 
 int GetFileName(int c, CBack *full_command, int *back_sl, int *quote, int *double_quote) {
     if (c == '<') {
-        CollectWholeFileName(&(*full_command).arrows[0], &c, back_sl, quote, double_quote, 0);
+        CollectWholeFileName(&(*full_command).arrows[(*full_command).length][0], &c, back_sl, quote, double_quote, 0);
     }
     if (c == '>') {
             c = getchar();
             if (c == '>') {
                 (*full_command).which_arrow_last = 2;
-                CollectWholeFileName(&(*full_command).arrows[2], &c, back_sl, quote, double_quote, 0);
+                CollectWholeFileName(&(*full_command).arrows[(*full_command).length][2], &c, back_sl, quote, double_quote, 0);
             }
             else {
                 (*full_command).which_arrow_last = 1;
-                CollectWholeFileName(&(*full_command).arrows[1], &c, back_sl, quote, double_quote, 1);
+                CollectWholeFileName(&(*full_command).arrows[(*full_command).length][1], &c, back_sl, quote, double_quote, 1);
             }
         }
 
@@ -211,6 +211,16 @@ int DetectPipeEnd(int exit_symbol, int conv_end, int *ampersand) {
 void GetNewString(CBack *full_command, int *exit_symbol, int *last_amp) {
     int size = 16;
     int background_length = (*full_command).length;
+    (*full_command).arrows[background_length] = (Arrs*)malloc(3 * sizeof(Arrs));
+    (*full_command).arrows[background_length][0].size = 16;
+    (*full_command).arrows[background_length][1].size = 16;
+    (*full_command).arrows[background_length][2].size = 16;
+    (*full_command).arrows[background_length][0].length = 0;
+    (*full_command).arrows[background_length][1].length = 0;
+    (*full_command).arrows[background_length][2].length = 0;
+    (*full_command).arrows[background_length][0].file_name = (char **)malloc((*full_command).arrows[background_length][0].size * sizeof(char *));
+    (*full_command).arrows[background_length][1].file_name = (char **)malloc((*full_command).arrows[background_length][1].size * sizeof(char *));
+    (*full_command).arrows[background_length][2].file_name = (char **)malloc((*full_command).arrows[background_length][2].size * sizeof(char *));
     CPipe *last_pipe_inf = &(*full_command).background_pipes[background_length];
     (*last_pipe_inf).pipe_comms = (CInf *)malloc(size * sizeof(CInf));
     (*last_pipe_inf).length = 0;
@@ -255,21 +265,14 @@ CBack GetNewCommPipe() {
     full_command.last_is_pipeline = 0;
     full_command.last_is_background = 0;
     full_command.which_arrow_last = -1;
-    full_command.arrows[0].size = 16;
-    full_command.arrows[1].size = 16;
-    full_command.arrows[2].size = 16;
-    full_command.arrows[0].length = 0;
-    full_command.arrows[1].length = 0;
-    full_command.arrows[2].length = 0;
-    full_command.arrows[0].file_name = (char **)malloc(full_command.arrows[0].size * sizeof(char *));
-    full_command.arrows[1].file_name = (char **)malloc(full_command.arrows[1].size * sizeof(char *));
-    full_command.arrows[2].file_name = (char **)malloc(full_command.arrows[2].size * sizeof(char *));
+    full_command.arrows = (Arrs **)malloc(size * sizeof(Arrs *));
     int exit_symbol = '\0';
     int last_amp = 0;
     while(exit_symbol != '\n') {
         
         if (full_command.length == size) {
             GiveMore4DimSpace(&full_command.background_pipes, &size);
+            GiveMoreArrsSpace(&full_command.arrows, size / 2);
         }
         exit_symbol = '\0';
         GetNewString(&full_command, &exit_symbol, &last_amp);

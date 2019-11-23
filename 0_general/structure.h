@@ -23,10 +23,7 @@ typedef struct BackgroundComm {
     int not_blank;
     int last_is_pipeline;
     int last_is_background;
-    /*Arrs* double_arrow;
-    Arrs arrow;
-    Arrs back_arrow;*/
-    Arrs arrows[3];
+    Arrs **arrows;
     int which_arrow_last;
 }CBack;
 

@@ -15,3 +15,7 @@ void GiveMore3DimSpace (CInf **small, int *data_volume);
 void Copy4Dim(CPipe *small, CPipe *big, int data_volume);
 
 void GiveMore4DimSpace (CPipe **small, int *data_volume);
+
+void CopyArrs(Arrs **small, Arrs **big, int data_volume);
+
+void GiveMoreArrsSpace (Arrs ***small, int data_volume);

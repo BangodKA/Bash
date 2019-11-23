@@ -60,3 +60,17 @@ void GiveMore4DimSpace (CPipe **small, int *data_volume) {
     free(*small);
     *small = big;
 }
+
+void CopyArrs(Arrs **small, Arrs **big, int data_volume) { 
+    for(int i = 0; i < data_volume; i++) {
+        big[i] = small[i];
+    }
+}
+
+void GiveMoreArrsSpace (Arrs ***small, int data_volume) {
+    data_volume *= 2;
+    Arrs **big = (Arrs **)malloc(data_volume * sizeof(Arrs *));
+    CopyArrs(*small, big, data_volume / 2);
+    free(*small);
+    *small = big;
+}
