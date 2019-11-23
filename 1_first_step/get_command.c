@@ -1,11 +1,11 @@
 #include <stdio.h> 
-#include <stdlib.h> // Для определения домашней директории
+#include <stdlib.h>
 #include <string.h>
 
+#include "../0_general/structure.h"
 #include "reallocs.h"
 
-int GetNewSymbol(int *back_sl, int *quote, int *double_quote) {
-    int c = getchar();
+int DetectScreen(int c, int *back_sl, int *quote, int *double_quote) {
     if (c == '\\') {
         if (*back_sl == 1) {
             *back_sl = 0;
@@ -26,96 +26,115 @@ int GetNewSymbol(int *back_sl, int *quote, int *double_quote) {
         return -1;
     }
 
-    if (c == '|') {
-        /*if (j == 0) {
-            while(getchar() != '\n'); // cчитываем лишний ввод
-            return 1;
-        }*/
-    }
-
-    if (c == '<') {
-        return 0;
-    }
-
-    if (c == '>') {
-        return 2;
-    }
     return c;
 }
 
-int GetFileName(int c, CBack *full_command) {
-
-    if (c == 0) {
-        while (((c = getchar()) == ' ') || c == '\t');
-        int temp_size = 16;
-        int i = 0;
-        if ((*full_command).arrows[0].length == (*full_command).arrows[0].size) {
-            GiveMoreTwoDimSpace(&(*full_command).arrows[0].file_name, &(*full_command).arrows[0].size);
-        }
-        (*full_command).arrows[0].file_name[(*full_command).arrows[0].length] = (char *)malloc(temp_size * sizeof(char *));
-        while ((c != ' ' && c != '\n' && c != '\t' && c != '\r' && c != '&' && c != '|')) {
-            (*full_command).arrows[0].file_name[(*full_command).arrows[0].length][i] = c;
-            i++;
-            if (i == temp_size) {
-                GiveMoreSpace(&(*full_command).arrows[0].file_name[(*full_command).arrows[0].length], &temp_size);
-            }
-            c = getchar();
-        }
-        (*full_command).arrows[0].file_name[(*full_command).arrows[0].length][i] = '\0';
-        (*full_command).arrows[0].length += 1;
-        printf("%d\n", (*full_command).arrows[0].length);
+int ProcessScreen(int *c, int qoute) {
+    if (*c == -1) {
+        return 1;
     }
+    if (*c == -2) {
+        if (!qoute) {
+            return 1;
+        }
+        else {
+            *c = '\\';
+        }
+    }
+    return 0;
+}
 
-    if (c == 2) {
+int GetNextSymbol(int *c, int j, int *back_sl, int *qoute, int *double_quote, int arrow) {
+    if (!arrow) {
+        *c = getchar();
+    }
+    if (j == 0) {
+        if ((*c == ' ') || (*c == '\t')) {
+            *c = getchar();
+        }
+    }
+    
+    *c = DetectScreen(*c, back_sl, qoute, double_quote);
+
+    if (ProcessScreen(c, *qoute)) {
+        return -1;
+    }
+    return 0;
+}
+
+int ProcessSymbol(int c, int *back_sl, int qoute, int double_quote, char *command_arg, int *j) {
+    if ((c != ' ' && c != '\n' && c != '\t' && c != '\r' && c != '&' && c != '|') || (double_quote == 1) || (qoute == 1)) {
+        if ((c == '\n') && (*back_sl == 1) && (double_quote == 1)) {
+            *back_sl = 0;
+        }
+        else {
+            command_arg[*j] = c;
+            (*j)++;
+            *back_sl = 0;
+        }
+    }
+    else {
+        if ((c == '\n') && (*back_sl == 1)) {
+            *back_sl = 0;
+        }
+        else {
+            return -1;
+        }
+    }
+    return 0;
+}
+
+void GetAllNeededSymbols(char **file_name, int *back_sl, int *qoute, int *double_quote, int *c, int *temp_size, int *j, int arrow) {
+    while (1) {
+        if (*j == *temp_size) {
+            GiveMoreSpace(file_name, temp_size);
+        }
+
+        if((GetNextSymbol(c, *j, back_sl, qoute, double_quote, arrow)) == -1) {
+            continue;
+        }
+
+        if ((ProcessSymbol(*c, back_sl, *qoute, *double_quote,  *file_name, j)) == -1) {
+            break;
+        }
+        arrow = 0;
+    }
+}
+
+void CollectWholeFileName(Arrs *arrows, int *c, int *back_sl, int *qoute, int *double_quote, int arrow) {
+    int temp_size = 16;
+    int j = 0;
+    if ((*arrows).length == (*arrows).size) {
+        GiveMoreTwoDimSpace(&(*arrows).file_name, &(*arrows).size);
+    }
+    (*arrows).file_name[(*arrows).length] = (char *)malloc(temp_size * sizeof(char *));
+
+    GetAllNeededSymbols(&(*arrows).file_name[(*arrows).length], back_sl, qoute, double_quote, c, &temp_size, &j, arrow);
+    
+    (*arrows).file_name[(*arrows).length][j] = '\0';
+    (*arrows).length += 1;
+}
+
+int GetFileName(int c, CBack *full_command, int *back_sl, int *quote, int *double_quote) {
+    if (c == '<') {
+        CollectWholeFileName(&(*full_command).arrows[0], &c, back_sl, quote, double_quote, 0);
+    }
+    if (c == '>') {
             c = getchar();
             if (c == '>') {
                 (*full_command).which_arrow_last = 2;
-                while (((c = getchar()) == ' ') || c == '\t');
-                int temp_size = 16;
-                int i = 0;
-                if ((*full_command).arrows[2].length == (*full_command).arrows[2].size) {
-                    GiveMoreTwoDimSpace(&(*full_command).arrows[2].file_name, &(*full_command).arrows[2].size);
-                }
-                (*full_command).arrows[2].file_name[(*full_command).arrows[2].length] = (char *)malloc(temp_size * sizeof(char *));
-                while ((c != ' ' && c != '\n' && c != '\t' && c != '\r' && c != '&' && c != '|')) {
-                    (*full_command).arrows[2].file_name[(*full_command).arrows[2].length][i] = c;
-                    i++;
-                    if (i == temp_size) {
-                        GiveMoreSpace(&(*full_command).arrows[2].file_name[(*full_command).arrows[2].length], &temp_size);
-                    }
-                    c = getchar();
-                }
-                (*full_command).arrows[2].file_name[(*full_command).arrows[2].length][i] = '\0';
-                (*full_command).arrows[2].length += 1;
+                CollectWholeFileName(&(*full_command).arrows[2], &c, back_sl, quote, double_quote, 0);
             }
             else {
                 (*full_command).which_arrow_last = 1;
-                while ((c == ' ') || (c == '\t')) {//Лохундрий
-                    c = getchar();
-                }
-                int temp_size = 16;
-                int i = 0;
-                if ((*full_command).arrows[1].length == (*full_command).arrows[1].size) {
-                    GiveMoreTwoDimSpace(&(*full_command).arrows[1].file_name, &(*full_command).arrows[1].size);
-                }
-                (*full_command).arrows[1].file_name[(*full_command).arrows[1].length] = (char *)malloc(temp_size * sizeof(char *));
-                while ((c != ' ' && c != '\n' && c != '\t' && c != '\r' && c != '&' && c != '|')) {
-                    (*full_command).arrows[1].file_name[(*full_command).arrows[1].length][i] = c;
-                    i++;
-                    if (i == temp_size) {
-                        GiveMoreSpace(&(*full_command).arrows[1].file_name[(*full_command).arrows[1].length], &temp_size);
-                    }
-                    c = getchar();
-                }
-                (*full_command).arrows[1].file_name[(*full_command).arrows[1].length][i] = '\0';
-                (*full_command).arrows[1].length += 1;
+                CollectWholeFileName(&(*full_command).arrows[1], &c, back_sl, quote, double_quote, 1);
             }
         }
 
     return c;
 }
 
-int GetNewCommandWord(CBack *full_command, int *length) { // Добавляет в массив команды новое слово, возвращая последний символ
+int GetNewCommandWord(CBack *full_command, int *length) {
     int c;
     CInf *pipe_comms = (*full_command).background_pipes[(*full_command).length].pipe_comms;
     int len = (*full_command).background_pipes[(*full_command).length].length;
@@ -126,61 +145,23 @@ int GetNewCommandWord(CBack *full_command, int *length) { // Добавляет 
     int back_sl = 0;
     int double_quote = 0;
     int qoute = 0;
-    do {
+    while(1) {
         if (j == word_size) {
             GiveMoreSpace(&command[*length], &word_size);
         }
 
-        c = GetNewSymbol(&back_sl, &qoute, &double_quote);
-
-        
-
-        if (c == -1) {
+        if((GetNextSymbol(&c, j, &back_sl, &qoute, &double_quote, 0)) == -1) {
             continue;
         }
 
-        if (c == -2) {
-            if (!qoute) {
-                continue;
-            }
-            else
-            {
-                c = '\\';
-            }
-            
-        }
+        c = GetFileName(c, full_command, &back_sl, &qoute, &double_quote);
 
-        c = GetFileName(c, full_command);
-
-        /*if (c == 1) {
-            return 1;
-        }*/
-
-        if ((c != ' ' && c != '\n' && c != '\t' && c != '\r' && c != '&' && c != '|') || (double_quote == 1) || (qoute == 1)) { // Новый символ текущего слова команды
-            if ((c == '\n') && (back_sl == 1) && (double_quote == 1)) {
-                back_sl = 0;
-                continue;
-            }
-            command[*length][j] = c;
-            j++;
-            back_sl = 0;
-        }
-        else {
-            if ((c == '\n') && (back_sl == 1)) {
-                back_sl = 0;
-                continue;
-            }
-            /*if ((c == '\n') && (*last_amp == 1)) {
-                c = -1;
-            }
-            else {
-                (*last_amp) = 0;
-            }*/
+        if ((ProcessSymbol(c, &back_sl, qoute, double_quote, command[*length], &j)) == -1) {
             break;
         }
-    } while(1);
+    }
 
-    if (j != 0) { // Окончание строки, появилось новое слово длины j
+    if (j != 0) {
         (*full_command).not_blank = 1;
         command[*length][j] = '\0';
         (*length)++;
@@ -195,9 +176,9 @@ void GetNewCommand(CBack *full_command, int *exit_symbol) {
     int len = (*full_command).background_pipes[(*full_command).length].length;
     pipe_comms[len].command = (char **)malloc(comm_size * sizeof(char *));
     int comm_length = 0;
-    while(1) { // Последний прочитанный мог быть пробелом, тогда получаем еще слова
+    while(1) {
         *exit_symbol = GetNewCommandWord(full_command, &comm_length);
-        if ((*exit_symbol == '\n') || (*exit_symbol == '&') || (*exit_symbol == 1) || (*exit_symbol == -1) || (*exit_symbol == '|')) {
+        if ((*exit_symbol == '\n') || (*exit_symbol == '&') || (*exit_symbol == '|')) {
             break;
         }
         
@@ -211,63 +192,56 @@ void GetNewCommand(CBack *full_command, int *exit_symbol) {
         GiveMoreTwoDimSpace(&pipe_comms[len].command, &comm_size);
     }
 
-    pipe_comms[len].command[comm_length] = (char*)malloc(10 * sizeof(char)); // Маркер завершения команды
-    pipe_comms[len].command[comm_length] = NULL;                                    // для execvp
+    pipe_comms[len].command[comm_length] = (char*)malloc(10 * sizeof(char));
+    pipe_comms[len].command[comm_length] = NULL;                                    
 
     pipe_comms[len].length = comm_length;
 }
 
+int DetectPipeEnd(int exit_symbol, int conv_end, int *ampersand) {
+    if (((exit_symbol == '\n') && (!conv_end)) || (exit_symbol == '&')) {
+        if (exit_symbol == '&') {
+            *ampersand = 1;
+        }
+        return -1;
+    }
+    return 0;
+}
+
 void GetNewString(CBack *full_command, int *exit_symbol, int *last_amp) {
     int size = 16;
-    CPipe *background_pipes = (*full_command).background_pipes;
     int background_length = (*full_command).length;
-    background_pipes[background_length].pipe_comms = (CInf *)malloc(size * sizeof(CInf));
-    background_pipes[background_length].length = 0;
-    background_pipes[background_length].ampersand = 0;
+    CPipe *last_pipe_inf = &(*full_command).background_pipes[background_length];
+    (*last_pipe_inf).pipe_comms = (CInf *)malloc(size * sizeof(CInf));
+    (*last_pipe_inf).length = 0;
+    (*last_pipe_inf).ampersand = 0;    
     int conv_end = 0;
     while(1) {
 
-        if (((*exit_symbol == '\n') && (!conv_end)) || (*exit_symbol == '&')) {
-            if (*exit_symbol == '&') {
-                background_pipes[background_length].ampersand = 1;
-            }
+        if (DetectPipeEnd(*exit_symbol, conv_end, &(*last_pipe_inf).ampersand) == -1) {
             break;
-        }
+        }        
 
         if ((*exit_symbol == '\n') && (conv_end)) {
-            background_pipes[background_length].length--;
+            (*last_pipe_inf).length--;
         }
 
-        if (background_pipes[background_length].length == size) {
-            GiveMore3DimSpace(&background_pipes[background_length].pipe_comms, &size);
+        if ((*last_pipe_inf).length == size) {
+            GiveMore3DimSpace(&(*last_pipe_inf).pipe_comms, &size);
         }
-
-        int len = background_pipes[background_length].length;
 
         GetNewCommand(full_command, exit_symbol);
-
-
-        if (background_pipes[background_length].pipe_comms[len].length != 0) {
+        
+        if ((*last_pipe_inf).pipe_comms[(*last_pipe_inf).length].length != 0) {
             conv_end = 0;
             *last_amp = 0;
         }
-
-        /*if (exit_symbol == 1) {
-            object.length = -1;
-            break;
-        }*/
-
-        /*if (*exit_symbol == -1) {
-            break;
-        }*/
         
-        background_pipes[background_length].length++;
+        (*last_pipe_inf).length++;
 
         if (*exit_symbol == '|') {
             conv_end = 1;
-            if (!(*full_command).last_is_pipeline) {
-                (*full_command).last_is_pipeline = 1;
-            }
+            (*full_command).last_is_pipeline = 1;
         }
     }
 }
@@ -293,16 +267,12 @@ CBack GetNewCommPipe() {
     int exit_symbol = '\0';
     int last_amp = 0;
     while(exit_symbol != '\n') {
+        
         if (full_command.length == size) {
             GiveMore4DimSpace(&full_command.background_pipes, &size);
         }
         exit_symbol = '\0';
         GetNewString(&full_command, &exit_symbol, &last_amp);
-
-        if (exit_symbol == -1) {
-            full_command.length++;
-            break;
-        }
 
         if (exit_symbol == '&') {
             full_command.last_is_pipeline = 0;

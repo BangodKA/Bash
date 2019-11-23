@@ -10,7 +10,7 @@ void ProcessCommand(char **command, int where, int from, int wait_last) { // Ð’Ñ
     pid_t child;
     child = fork();
     if (child  < 0) {
-        printf("%s\n", "Something went wrong");
+        perror("");
     }
     else if (child == 0) {
         dup2(from, 0);

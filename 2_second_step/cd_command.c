@@ -3,6 +3,9 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "../0_general/structure.h"
+#include "../1_first_step/command_prompt.h"
+
 void GoHome() {
     char *tempHome = NULL;
     tempHome = getenv("HOME");
@@ -19,7 +22,7 @@ int ChangeDir(char **command) {
             strcpy(command[1], (&command[1][2]));
         }
         if (chdir(command[1]) == -1) {
-            printf("bash: cd: %s: Нет такого файла или каталога\n", command[1]);
+            perror(command[1]);
             return 0;
         }
         return 1;
@@ -28,22 +31,24 @@ int ChangeDir(char **command) {
     return 0;
 }
 
-int FindStartPoint(int home_dir_length, int dir_length, char *dirName, char *homeDir) {
-    if (home_dir_length > dir_length) {
-        return 0;
-    }
-    
-    if (!strncmp(dirName, homeDir, 5)) {
+int FindStartPoint(int home_dir_length, char *dirName, char *homeDir) {    
+    if (!strncmp(dirName, homeDir, home_dir_length)) {
         return home_dir_length;
     }
     return 0;
 }
 
-const char * const NeedTwiddle(int start_point, const char * const nothing, const char * const twiddle) {
-    if (start_point == 0) {
-        return nothing;
-    }
-    else {
-        return twiddle;
+void ChangeDirAndAppearance(CInf last_command_inf, char **dirName, int *start_point, const char **invitation, int home_dir_length, char *homeDir) {
+    if (!strcmp(last_command_inf.command[0], "cd")) {
+        if (last_command_inf.length > 2) {
+            printf("bash: cd: слишком много аргументов\n");
+        }
+        else if(ChangeDir(last_command_inf.command)) {
+            GetDir(dirName);
+
+            *start_point = FindStartPoint(home_dir_length, *dirName, homeDir);
+
+            *invitation = (*start_point == 0) ? ("") : ("~");
+        }
     }
 }

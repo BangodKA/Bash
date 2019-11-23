@@ -17,19 +17,20 @@ typedef struct Arrows {
     int length;
 }Arrs;
 
-typedef struct BackgroundComm{
+typedef struct BackgroundComm {
     CPipe *background_pipes;
     int length;
     int not_blank;
     int last_is_pipeline;
     int last_is_background;
-    Arrs arrows[3];
-    int which_arrow_last;
-    /*Arrs double_arrow;
+    /*Arrs* double_arrow;
     Arrs arrow;
     Arrs back_arrow;*/
+    Arrs arrows[3];
+    int which_arrow_last;
 }CBack;
 
-int WaitBackgroundZombies(int *amp_amount);
-
-void FreeHeap(CBack full_command);
+typedef struct BackgroundZombies {
+    CPipe background_pipe;
+    int process_number;
+}BZombies;

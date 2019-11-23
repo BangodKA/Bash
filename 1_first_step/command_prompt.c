@@ -1,40 +1,25 @@
 #define _GNU_SOURCE
-#include <limits.h> // длины пути, хоста и имени пользователя
+#include <limits.h>
 #include <stdio.h> 
-#include <stdlib.h> // Для определения домашней директории
+#include <stdlib.h>
 #include <unistd.h>
 
 
-int GetHomeDirLen(char **homeDir) {
-    *homeDir = getenv("HOME"); // Определяем домашнюю директорию
-
-    int i = 0;
-
-    while ((*homeDir)[i] != '\0') { 
-        i++;
+void GetHomeDirLen(char **homeDir, int *home_dir_length) {
+    *homeDir = getenv("HOME");
+    while ((*homeDir)[*home_dir_length] != '\0') { 
+        (*home_dir_length)++;
     }
-
-    return i;
 }
 
-int GetDir(char **dirName) { // Задает путь для приглашения ко вводу, возвращает длину домашней директории
+void GetDir(char **dirName) {
     free(*dirName);
     *dirName = (char *)malloc((PATH_MAX + 1) * sizeof(char));
-    getcwd(*dirName, PATH_MAX); // Определяем путь к текущей директории 
-
-    int dir_length = 0;
-    while((*dirName)[dir_length] != '\0') { // Ищем конец для ChangeDir
-        dir_length++; 
-    }
-    return dir_length;
+    getcwd(*dirName, PATH_MAX);
 }
 
-void CreateCommandPrompt(char **dirName, char *userName, char *hostName, int *dir_length) { // Приглашение ко вводу
+void CreateCommandPrompt(char **dirName, char *userName, char *hostName) {
     GetDir(dirName);
-
-    while((*dirName)[*dir_length] != '\0') { 
-        (*dir_length)++; 
-    }
 
     getlogin_r(userName, LOGIN_NAME_MAX); 
 
