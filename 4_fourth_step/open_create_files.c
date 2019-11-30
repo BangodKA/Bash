@@ -14,7 +14,7 @@
             close(open_res); \
         } \
     }\
-        return open(arrow.file_name[arrow.length - 1], first | second | third, S_IRWXU); 
+    return open(arrow.file_name[arrow.length - 1], first | second | third, S_IRWXU); 
 
 int ProcessWriteFiles (Arrs arrow, int arrows_types) {
     if (arrows_types == 1) {
