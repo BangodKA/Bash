@@ -20,7 +20,7 @@ void GetDir(char **dirName) {
 void CreateCommandPrompt(char **dirName, char *userName, char *hostName) {
     GetDir(dirName);
 
-    getlogin_r(userName, LOGIN_NAME_MAX); 
+    getlogin_r(userName, _POSIX_LOGIN_NAME_MAX); 
 
-    gethostname(hostName, HOST_NAME_MAX); 
+    gethostname(hostName, _POSIX_HOST_NAME_MAX); 
 } 

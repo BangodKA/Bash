@@ -265,7 +265,7 @@ CBack GetNewCommPipe() {
     full_command.last_is_pipeline = 0;
     full_command.last_is_background = 0;
     full_command.which_arrow_last = -1;
-    full_command.arrows = (Arrs **)malloc(size * sizeof(Arrs *));
+    full_command.arrows = (Arrs **)malloc(3 * sizeof(Arrs *));
     int exit_symbol = '\0';
     int last_amp = 0;
     while(exit_symbol != '\n') {

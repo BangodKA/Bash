@@ -39,16 +39,14 @@ int FindStartPoint(int home_dir_length, char *dirName, char *homeDir) {
 }
 
 void ChangeDirAndAppearance(CInf last_command_inf, char **dirName, int *start_point, const char **invitation, int home_dir_length, char *homeDir) {
-    if (!strcmp(last_command_inf.command[0], "cd")) {
-        if (last_command_inf.length > 2) {
-            printf("bash: cd: слишком много аргументов\n");
-        }
-        else if(ChangeDir(last_command_inf.command)) {
-            GetDir(dirName);
+    if (last_command_inf.length > 2) {
+        printf("bash: cd: слишком много аргументов\n");
+    }
+    else if(ChangeDir(last_command_inf.command)) {
+        GetDir(dirName);
 
-            *start_point = FindStartPoint(home_dir_length, *dirName, homeDir);
+        *start_point = FindStartPoint(home_dir_length, *dirName, homeDir);
 
-            *invitation = (*start_point == 0) ? ("") : ("~");
-        }
+        *invitation = (*start_point == 0) ? ("") : ("~");
     }
 }
