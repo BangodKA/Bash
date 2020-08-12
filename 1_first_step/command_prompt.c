@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "command_prompt.h"
+
 
 void GetHomeDirLen(char **homeDir, int *home_dir_length) {
     *homeDir = getenv("HOME");

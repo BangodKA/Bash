@@ -5,6 +5,8 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+#include "process_command.h"
+
 void ProcessCommand(char **command, int where, int from, int wait_last) { // Выполнение команды API
     pid_t child;
     child = fork();

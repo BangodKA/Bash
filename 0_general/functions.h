@@ -1,3 +1,5 @@
+#pragma once
+
 #include <stdio.h> 
 #include <stdlib.h>
 #include <sys/wait.h>
@@ -12,13 +14,13 @@
 
 void PrintBackgroundZombie(CPipe process_pipe, pid_t child);
 
-void FreeBackgroundZombie(CPipe process_pipe, int length, int index);
+void FreeBackgroundZombie(CPipe *process_pipe, int length, int index);
 
 void WaitBackgroundZombies(int *amp_amount, BZombies *process_manager);
 
 int CheckExitAndCd(CBack full_command, char **dirName, int *start_point, const char **invitation, int home_dir_length, char *homeDir);
 
-void RememberBackgroundZombie(CPipe process_pipe, CPipe background_pipe);
+void RememberBackgroundZombie(CPipe *process_pipe, CPipe background_pipe);
 
 int ProcessFullCommand(CBack full_command, int fd_in, int fd_out, int *amp_amount, BZombies *process_manager);
 

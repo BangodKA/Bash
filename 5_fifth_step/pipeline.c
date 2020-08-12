@@ -1,5 +1,6 @@
 #include <unistd.h>
 
+#include "pipeline.h"
 #include "../0_general/structure.h"
 #include "../2_second_step/process_command.h"
 

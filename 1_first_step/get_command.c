@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "get_command.h"
 #include "../0_general/structure.h"
 #include "reallocs.h"
 

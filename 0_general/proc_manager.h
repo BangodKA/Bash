@@ -1,5 +1,7 @@
 #pragma once
 
+#include "structure.h"
+
 void PrintBackgroundZombie(CPipe process_pipe, pid_t child);
 
 void FreeBackgroundZombie(CPipe *process_pipe, int length, int index);

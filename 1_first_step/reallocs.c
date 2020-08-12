@@ -1,4 +1,6 @@
 #include <stdlib.h>
+
+#include "reallocs.h"
 #include "../0_general/structure.h"
 
 void Copy(const char *small, char *big, int data_volume) {

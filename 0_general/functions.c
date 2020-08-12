@@ -11,6 +11,7 @@
 #include <string.h>
 
 #include "structure.h"
+#include "functions.h"
 #include "../1_first_step/reallocs.h"
 #include "../1_first_step/command_prompt.h"
 #include "../1_first_step/get_command.h"

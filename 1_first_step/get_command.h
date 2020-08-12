@@ -1,10 +1,12 @@
 #pragma once
 
+#include "../0_general/structure.h"
+
 int DetectScreen(int c, int *back_sl, int *quote, int *double_quote);
 
 int ProcessScreen(int *c, int qoute);
 
-int GetNextSymbol(int j, int *back_sl, int *qoute, int *double_quote, int arrow);
+int GetNextSymbol(int *c, int j, int *back_sl, int *qoute, int *double_quote, int arrow);
 
 int ProcessSymbol(int c, int *back_sl, int qoute, int double_quote, char *command_arg, int *j);
 

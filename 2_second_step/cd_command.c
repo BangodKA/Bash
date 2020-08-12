@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "cd_command.h"
 #include "../0_general/structure.h"
 #include "../1_first_step/command_prompt.h"
 

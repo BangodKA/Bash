@@ -2,7 +2,9 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <stdlib.h>
+
 #include "structure.h"
+#include "proc_manager.h"
 #include "../1_first_step/reallocs.h"
 
 void PrintBackgroundZombie(CPipe process_pipe, pid_t child) {

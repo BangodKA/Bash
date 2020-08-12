@@ -4,6 +4,7 @@
 #include <fcntl.h>
 #include <errno.h>
 
+#include "open_create_files.h"
 #include "../0_general/structure.h"
 
 #define WriteFlags(first, second, third) \

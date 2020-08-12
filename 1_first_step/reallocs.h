@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../0_general/structure.h"
+
 void Copy(const char *small, char *big, int data_volume);
 
 void GiveMoreSpace (char **small, int *data_volume);

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../0_general/structure.h"
+
 int DetectExit(char *commands);
 
 void GoHome();

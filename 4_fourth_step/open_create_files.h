@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../0_general/structure.h"
+
 int Read(Arrs back_arrow);
 
 int ProcessWriteFiles (Arrs arrow, int arrows_types);
